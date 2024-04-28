@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "11029550813",
+    "project_id": "wildattend-18dce",
+    "storage_bucket": "wildattend-18dce.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:11029550813:android:e0f94d4193c545059c6d34",
+        "android_client_info": {
+          "package_name": "com.example.wildattend"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDwlLAcX9BlEnib_0l-dQc35b9bKwt5Q_8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
