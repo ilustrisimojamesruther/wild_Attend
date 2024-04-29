@@ -1,5 +1,6 @@
 package com.example.wildattend;
 
+import android.content.Intent;
 import android.os.Bundle;
 import androidx.appcompat.app.AppCompatActivity;
 import com.google.firebase.auth.FirebaseAuth;
@@ -35,6 +36,12 @@ public class MainActivity extends AppCompatActivity {
                 // Handle successful login
                 String email = user.getEmail();
                 Toast.makeText(MainActivity.this, "Login successful for: " + email, Toast.LENGTH_SHORT).show();
+
+                // Redirect to StudentDashboard activity upon successful login
+                Intent intent = new Intent(MainActivity.this, StudentDashboard.class);
+                startActivity(intent);
+                finish();// Finish MainActivity to prevent going back when pressing back button
+
                 // You can perform additional operations here if needed
             }
 
