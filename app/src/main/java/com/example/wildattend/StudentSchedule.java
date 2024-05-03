@@ -1,12 +1,18 @@
 package com.example.wildattend;
 
+import android.content.Intent;
 import android.os.Bundle;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -14,6 +20,8 @@ import android.view.ViewGroup;
  * create an instance of this fragment.
  */
 public class StudentSchedule extends Fragment {
+    private ListView listView;
+    private ArrayAdapter<String> adapter;
 
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -55,10 +63,48 @@ public class StudentSchedule extends Fragment {
         }
     }
 
+    @Nullable
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_student_schedule, container, false);
+        View rootView = inflater.inflate(R.layout.fragment_student_schedule, container, false);
+        listView = rootView.findViewById(R.id.list_view_schedule);
+        setupListView();
+        return rootView;
     }
+
+    private void setupListView() {
+        // Sample data for schedule items
+        String[] scheduleItems = {"ABC123", "DEF456", "GHI789", "JKL012", "MNO123"};
+
+        // Create an ArrayAdapter to display the schedule items
+        adapter = new ArrayAdapter<>(requireContext(), R.layout.list_class_schedule, R.id.course_code, scheduleItems);
+
+        // Set the adapter to the ListView
+        listView.setAdapter(adapter);
+
+        listView.setOnItemClickListener((parent, view, position, id) -> {
+            // Replace with the fragment you want to navigate to
+            Fragment fragment = new StudentScheduleClass();
+            getParentFragmentManager()
+                    .beginTransaction()
+                    .replace(R.id.frame_layout, fragment)
+                    .addToBackStack(null)
+                    .commit();
+        });
+    }
+
+//    private void setupListView() {
+//        adapter = new ArrayAdapter<>(requireContext(), R.layout.list_class_schedule, R.id.course_code, scheduleItems);
+//        listView.setAdapter(adapter);
+//
+//        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+//            @Override
+//            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+//                Intent intent = new Intent(requireContext(), StudentScheduleClass.class);
+//                intent.putExtra("key", scheduleItems[position]);
+//                startActivity(intent);
+//            }
+//        });
+//    }
 }

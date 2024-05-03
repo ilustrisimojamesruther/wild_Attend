@@ -24,6 +24,7 @@ public class StudentDashboard extends AppCompatActivity {
         binding = ActivityStudentDashboardBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
+        // Initially replace with the StudentHome fragment
         replaceFragment(new StudentHome());
 
         binding.bottomNavigationView.setOnItemSelectedListener(menuItem -> {
@@ -32,23 +33,26 @@ public class StudentDashboard extends AppCompatActivity {
                     replaceFragment(new StudentHome());
                     break;
                 case R.id.student_schedule:
+                    // Replace with the StudentSchedule fragment
                     replaceFragment(new StudentSchedule());
                     break;
                 case R.id.student_profile:
+                    // Replace with the StudentProfile fragment
                     replaceFragment(new StudentProfile());
                     break;
             }
             return true;
         });
-
-
     }
 
     private void replaceFragment(Fragment fragment){
+        // Get the FragmentManager
         FragmentManager fragmentManager = getSupportFragmentManager();
+        // Begin a FragmentTransaction
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+        // Replace the current fragment with the new one
         fragmentTransaction.replace(R.id.frame_layout, fragment);
+        // Commit the transaction
         fragmentTransaction.commit();
     }
-
 }
