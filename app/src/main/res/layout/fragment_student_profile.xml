@@ -1,17 +1,130 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".StudentProfile"
-    android:background="@drawable/background_dashboard">
+    android:background="@drawable/background_dashboard"
+    tools:context="StudentProfile">
 
-    <!-- TODO: Update blank fragment layout -->
+    <ImageView
+        android:id="@+id/profilepicture"
+        android:layout_width="220dp"
+        android:layout_height="130dp"
+        android:layout_margin="125dp"
+        android:layout_gravity="top|center"
+        android:src="@drawable/picture_profile" />
+
     <TextView
+        android:id="@+id/studentname"
+        android:layout_width="220dp"
+        android:layout_height="50dp"
+        android:layout_gravity="top|center"
+        android:layout_margin="265dp"
+        android:text="Clarissa Kiara A. Uy"
+        android:textColor="@color/black"
+        android:textSize="22sp"
+        tools:ignore="TextSizeCheck" />
+
+
+    <TextView
+        android:id="@+id/id_number_label"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Profile"
-        android:textSize="26dp"
-        android:layout_gravity="center"/>
+        android:layout_gravity="top|start"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="310dp"
+        android:text="ID Number:"
+        android:textColor="@color/black"
+        android:textStyle="bold"
+        android:textSize="16sp" />
+
+    <TextView
+        android:id="@+id/id_number"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|start"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="340dp"
+        android:text="21-5122-546"
+        android:textColor="@color/black"
+        android:textSize="16sp" />
+
+
+    <TextView
+        android:id="@+id/email_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|start"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="370dp"
+        android:text="Email"
+        android:textColor="@color/black"
+        android:textStyle="bold"
+        android:textSize="16sp" />
+
+    <TextView
+        android:id="@+id/email"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|start"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="400dp"
+        android:text="clarissakiarauy@cit.edu"
+        android:textColor="@color/black"
+        android:textSize="16sp" />
+
+
+    <TextView
+        android:id="@+id/department_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|start"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="430dp"
+        android:text="Department"
+        android:textColor="@color/black"
+        android:textStyle="bold"
+        android:textSize="16sp" />
+
+    <TextView
+        android:id="@+id/department"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|start"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="460dp"
+        android:text="CCS"
+        android:textColor="@color/black"
+        android:textSize="16sp" />
+
+
+    <Button
+        android:id="@+id/changepassword"
+        android:layout_width="250dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginTop="150dp"
+        android:text="Change Password"
+        android:backgroundTint="@color/maroon"/>
+
+    <Button
+        android:id="@+id/studentoverallattendance"
+        android:layout_width="250dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginTop="200dp"
+        android:backgroundTint="@color/maroon"
+        android:text="Over All Attendance" />
+
+    <Button
+        android:id="@+id/logout"
+        android:layout_width="250dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginTop="259dp"
+        android:text="Logout"
+        android:backgroundTint="@color/maroon"/>
+
 
 </FrameLayout>
