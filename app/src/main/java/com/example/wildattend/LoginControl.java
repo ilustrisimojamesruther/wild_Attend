@@ -28,7 +28,7 @@ public class LoginControl {
                             loginListener.onLoginSuccess(user);
                         } else {
                             // Login failed
-                            loginListener.onLoginFailure("Authentication failed. Please check your credentials.");
+                            loginListener.onLoginFailure("Incorrect credentials. Please try again.");
                         }
                     }
                 });

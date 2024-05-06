@@ -11,8 +11,11 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.FrameLayout;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
+import android.widget.TextView;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -21,14 +24,10 @@ import android.widget.PopupWindow;
  */
 public class StudentScheduleClass extends Fragment {
 
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-
     private AppCompatButton presentButton;
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
 
-    // TODO: Rename and change types of parameters
     private String mParam1;
     private String mParam2;
 
@@ -36,15 +35,6 @@ public class StudentScheduleClass extends Fragment {
         // Required empty public constructor
     }
 
-    /**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
-     *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
-     * @return A new instance of fragment StudentScheduleClass.
-     */
-    // TODO: Rename and change types and number of parameters
     public static StudentScheduleClass newInstance(String param1, String param2) {
         StudentScheduleClass fragment = new StudentScheduleClass();
         Bundle args = new Bundle();
@@ -74,57 +64,57 @@ public class StudentScheduleClass extends Fragment {
                 showPopup();
             }
         });
+
+        // Find and set OnClickListener for the back button
+        ImageButton backButton = rootView.findViewById(R.id.backButtonClass);
+        backButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Handle back button click event, for example, pop the fragment from the back stack
+                if (getActivity() != null) {
+                    getActivity().getSupportFragmentManager().popBackStack();
+                }
+            }
+        });
+
         return rootView;
     }
 
     private void showPopup() {
-        // Inflate the layout for the popup window
         View popupView = getLayoutInflater().inflate(R.layout.popup_late, null);
 
-        // Create a PopupWindow object
         int width = LinearLayout.LayoutParams.WRAP_CONTENT;
         int height = LinearLayout.LayoutParams.WRAP_CONTENT;
-        boolean focusable = true; // Allows touch events outside of the PopupWindow
+        boolean focusable = true;
         PopupWindow popupWindow = new PopupWindow(popupView, width, height, focusable);
 
-        // Find the root view of your fragment
         View rootView = getView();
 
-        // Create the overlay view
         View overlay = new View(requireContext());
         overlay.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
-        overlay.setBackgroundColor(getResources().getColor(android.R.color.transparent)); // Semi-transparent color
+        overlay.setBackgroundColor(getResources().getColor(android.R.color.transparent));
         ((ViewGroup) rootView).addView(overlay);
 
-        // Make the overlay clickable and focusable to intercept touch events
         overlay.setClickable(true);
         overlay.setFocusable(true);
 
-        // Set up the popup window with custom layout
         popupWindow.showAtLocation(rootView, Gravity.CENTER, 0, 0);
 
-        // Find the "Continue" button inside the popup layout
         Button continueButton = popupView.findViewById(R.id.continueButton);
         continueButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // Inflate the layout for the StudentScheduleLate fragment
                 View studentScheduleLateView = getLayoutInflater().inflate(R.layout.fragment_student_schedule_late, null);
 
-                // Replace the current fragment layout with the StudentScheduleLate layout
                 ViewGroup parent = (ViewGroup) rootView.getParent();
                 int index = parent.indexOfChild(rootView);
                 parent.removeView(rootView);
                 parent.addView(studentScheduleLateView, index);
 
-                // Remove the overlay
                 ((ViewGroup) rootView).removeView(overlay);
 
-                // Dismiss the popup window
                 popupWindow.dismiss();
             }
         });
     }
-
-
 }

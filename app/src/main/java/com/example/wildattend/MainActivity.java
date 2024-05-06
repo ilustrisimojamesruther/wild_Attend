@@ -5,6 +5,8 @@ import android.os.Bundle;
 import androidx.appcompat.app.AppCompatActivity;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.Button;
 import android.widget.Toast;
@@ -16,6 +18,7 @@ public class MainActivity extends AppCompatActivity {
     private LoginControl loginControl;
     private EditText emailEditText, passwordEditText;
     private Button loginButton;
+    private CheckBox checkBox;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -26,9 +29,10 @@ public class MainActivity extends AppCompatActivity {
         emailEditText = findViewById(R.id.email);
         passwordEditText = findViewById(R.id.password);
         loginButton = findViewById(R.id.button);
+        checkBox = findViewById(R.id.checkBox);
 
         loginUI = new LoginUI();
-        loginUI.setViews(emailEditText, passwordEditText, loginButton);
+        loginUI.setViews(emailEditText, passwordEditText, loginButton, checkBox);
 
         loginControl = new LoginControl(new LoginControl.LoginListener() {
             @Override
