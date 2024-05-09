@@ -46,4 +46,18 @@
     </string>
     
     <string name="late">You will be asked to input a valid\nreason for your late time in.</string>
+
+    <!-- This is for student change password -->
+    <string name="student_name">Clarissa Kiara A. Uy</string>
+    <string name="change_password">Change Password</string>
+    <string name="enter_new_password">Enter New Password</string>
+    <string name="hint_current_password">Enter Current Password</string>
+    <string name="re_enter_new_password">Re-Enter New Password</string>
+    <string name="update_password">Update Password</string>
+    <string name="Name">Student name</string>
+    <string name="StudentChangePass">Change password</string>
+
+    <!-- This is for student over all attendance-->
+    <string name="logout_button_text">Export Attendance</string>
+
 </resources>
