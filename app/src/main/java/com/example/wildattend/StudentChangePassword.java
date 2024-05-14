@@ -7,7 +7,16 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
+
+import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
+
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.auth.AuthCredential;
+import com.google.firebase.auth.EmailAuthProvider;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
 public class StudentChangePassword extends Fragment {
 
@@ -26,7 +35,7 @@ public class StudentChangePassword extends Fragment {
         currentPasswordEditText = view.findViewById(R.id.CurrentPassword);
         newPasswordEditText = view.findViewById(R.id.NewPassword);
         reEnterNewPasswordEditText = view.findViewById(R.id.ReEnterNewPassword);
-        updatePasswordButton = view.findViewById(R.id.logout);
+        updatePasswordButton = view.findViewById(R.id.updatePassword);
 
         updatePasswordButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -49,22 +58,42 @@ public class StudentChangePassword extends Fragment {
             return;
         }
 
-        // Placeholder: Verify the current password
-        if (!isCurrentPasswordValid(currentPassword)) {
-            Toast.makeText(getActivity(), "Incorrect current password", Toast.LENGTH_SHORT).show();
-            return;
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user != null) {
+            // Re-authenticate the user with their current password
+            AuthCredential credential = EmailAuthProvider.getCredential(user.getEmail(), currentPassword);
+            user.reauthenticate(credential)
+                    .addOnSuccessListener(new OnSuccessListener<Void>() {
+                        @Override
+                        public void onSuccess(Void aVoid) {
+                            // User re-authenticated successfully, proceed with password update
+                            user.updatePassword(newPassword)
+                                    .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                        @Override
+                                        public void onSuccess(Void aVoid) {
+                                            // Password updated successfully
+                                            Toast.makeText(getActivity(), "Password updated successfully", Toast.LENGTH_SHORT).show();
+                                        }
+                                    })
+                                    .addOnFailureListener(new OnFailureListener() {
+                                        @Override
+                                        public void onFailure(@NonNull Exception e) {
+                                            // Failed to update password
+                                            Toast.makeText(getActivity(), "Failed to update password: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                                        }
+                                    });
+                        }
+                    })
+                    .addOnFailureListener(new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception e) {
+                            // Failed to re-authenticate user
+                            Toast.makeText(getActivity(), "Failed to re-authenticate user: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                        }
+                    });
+        } else {
+            // User is not authenticated
+            Toast.makeText(getActivity(), "User is not authenticated", Toast.LENGTH_SHORT).show();
         }
-
-        // Password change logic goes here
-        // You can implement database operations or call authentication manager methods to update the password
-    }
-
-    // Placeholder method to verify the current password
-    private boolean isCurrentPasswordValid(String currentPassword) {
-        // Implement your logic to verify the current password
-        // For example, compare it with the actual current password stored in the database
-        // Replace this with your actual logic to validate the current password
-        String actualCurrentPassword = "123456"; // Assuming this is your actual current password
-        return currentPassword.equals(actualCurrentPassword);
     }
 }

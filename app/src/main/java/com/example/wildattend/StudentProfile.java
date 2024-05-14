@@ -1,5 +1,7 @@
 package com.example.wildattend;
 
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
@@ -8,11 +10,15 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
+import androidx.fragment.app.FragmentTransaction;
+
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 
 import com.google.firebase.auth.FirebaseAuth;
@@ -32,7 +38,7 @@ public class StudentProfile extends Fragment {
     private TextView studentNameTextView;
     private TextView idNumberTextView;
     private TextView departmentTextView;
-    private TextView emailTextView; // Added TextView for email
+    private TextView emailTextView;
 
     public StudentProfile() {
         // Required empty public constructor
@@ -57,7 +63,15 @@ public class StudentProfile extends Fragment {
         studentNameTextView = view.findViewById(R.id.studentname);
         idNumberTextView = view.findViewById(R.id.id_number);
         departmentTextView = view.findViewById(R.id.department);
-        emailTextView = view.findViewById(R.id.email); // Initialize email TextView
+        emailTextView = view.findViewById(R.id.email);
+
+        Button logoutButton = view.findViewById(R.id.logout);
+        Button changePasswordButton = view.findViewById(R.id.changepassword);
+
+        logoutButton.setOnClickListener(v -> showLogoutConfirmationDialog());
+
+        // Set OnClickListener for change password button
+        changePasswordButton.setOnClickListener(v -> navigateToChangePassword());
 
         fetchUserInformation();
     }
@@ -78,16 +92,13 @@ public class StudentProfile extends Fragment {
                             String idNumber = documentSnapshot.getString("idNum");
                             String department = documentSnapshot.getString("department");
                             String imageUrl = documentSnapshot.getString("img");
-
-                            // Fetch email from document
                             String email = documentSnapshot.getString("email");
 
                             studentNameTextView.setText(firstName + " " + lastName);
                             idNumberTextView.setText(idNumber);
                             departmentTextView.setText(department);
-                            emailTextView.setText(email); // Set email text
+                            emailTextView.setText(email);
 
-                            // Load the image from URL
                             new LoadImageTask(profileImageView).execute(imageUrl);
                         }
                     })
@@ -96,7 +107,6 @@ public class StudentProfile extends Fragment {
                     });
         } else {
             Log.e("StudentProfile", "User is not authenticated");
-            // Handle the case where the user is not authenticated or has signed out
         }
     }
 
@@ -132,5 +142,41 @@ public class StudentProfile extends Fragment {
                 }
             }
         }
+    }
+
+    private void showLogoutConfirmationDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
+        builder.setTitle("Logout");
+        builder.setMessage("Are you sure you want to logout?");
+        builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                logoutUser();
+            }
+        });
+        builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+            }
+        });
+        builder.show();
+    }
+
+    private void logoutUser() {
+        FirebaseAuth.getInstance().signOut();
+        startActivity(new Intent(getActivity(), MainActivity.class));
+        getActivity().finish();
+    }
+
+    private void navigateToChangePassword() {
+        // Create instance of StudentChangePassword fragment
+        StudentChangePassword changePasswordFragment = new StudentChangePassword();
+
+        // Navigate to the StudentChangePassword fragment
+        FragmentTransaction transaction = getParentFragmentManager().beginTransaction();
+        transaction.replace(android.R.id.content, changePasswordFragment);
+        transaction.addToBackStack(null);
+        transaction.commit();
     }
 }

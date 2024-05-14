@@ -2,10 +2,11 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/sProfile"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/background_dashboard"
-    tools:context="StudentProfile">
+    tools:context=".StudentProfile">
 
     <ImageView
         android:id="@+id/profilepicture"
@@ -36,8 +37,8 @@
         android:layout_marginTop="310dp"
         android:text="ID Number:"
         android:textColor="@color/black"
-        android:textStyle="bold"
-        android:textSize="16sp" />
+        android:textSize="16sp"
+        android:textStyle="bold" />
 
     <TextView
         android:id="@+id/id_number"
@@ -60,8 +61,8 @@
         android:layout_marginTop="370dp"
         android:text="Email"
         android:textColor="@color/black"
-        android:textStyle="bold"
-        android:textSize="16sp" />
+        android:textSize="16sp"
+        android:textStyle="bold" />
 
     <TextView
         android:id="@+id/email"
@@ -84,8 +85,8 @@
         android:layout_marginTop="430dp"
         android:text="Department"
         android:textColor="@color/black"
-        android:textStyle="bold"
-        android:textSize="16sp" />
+        android:textSize="16sp"
+        android:textStyle="bold" />
 
     <TextView
         android:id="@+id/department"
@@ -105,8 +106,8 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:layout_marginTop="150dp"
-        android:text="Change Password"
-        android:backgroundTint="@color/maroon"/>
+        android:backgroundTint="@color/maroon"
+        android:text="Change Password" />
 
     <Button
         android:id="@+id/studentoverallattendance"
@@ -123,8 +124,8 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:layout_marginTop="259dp"
-        android:text="Logout"
-        android:backgroundTint="@color/maroon"/>
+        android:backgroundTint="@color/maroon"
+        android:text="Logout" />
 
 
 </FrameLayout>
