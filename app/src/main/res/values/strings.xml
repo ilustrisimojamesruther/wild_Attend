@@ -56,6 +56,7 @@
     <string name="update_password">Update Password</string>
     <string name="Name">Student name</string>
     <string name="StudentChangePass">Change password</string>
+    <string name="input_empty"></string>
 
     <!-- This is for student over all attendance-->
     <string name="logout_button_text">Export Attendance</string>

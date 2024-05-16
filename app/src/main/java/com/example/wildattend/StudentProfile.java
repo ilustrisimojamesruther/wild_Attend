@@ -175,7 +175,7 @@ public class StudentProfile extends Fragment {
 
         // Navigate to the StudentChangePassword fragment
         FragmentTransaction transaction = getParentFragmentManager().beginTransaction();
-        transaction.replace(android.R.id.content, changePasswordFragment);
+        transaction.replace(R.id.frame_layout, changePasswordFragment);
         transaction.addToBackStack(null);
         transaction.commit();
     }

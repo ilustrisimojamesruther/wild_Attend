@@ -18,6 +18,7 @@ import android.graphics.BitmapFactory;
 
 import androidx.appcompat.widget.AppCompatButton;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentTransaction;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -163,12 +164,7 @@ public class StudentScheduleClass extends Fragment {
         continueButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                View studentScheduleLateView = getLayoutInflater().inflate(R.layout.fragment_student_schedule_late, null);
-
-                ViewGroup parent = (ViewGroup) rootView.getParent();
-                int index = parent.indexOfChild(rootView);
-                parent.removeView(rootView);
-                parent.addView(studentScheduleLateView, index);
+                navigateToStudentScheduleLate();
 
                 ((ViewGroup) rootView).removeView(overlay);
 
@@ -176,6 +172,18 @@ public class StudentScheduleClass extends Fragment {
             }
         });
     }
+
+    private void navigateToStudentScheduleLate() {
+        // Create instance of StudentScheduleLate fragment
+        StudentScheduleLate studentScheduleLateFragment = new StudentScheduleLate();
+
+        // Navigate to the StudentScheduleLate fragment
+        FragmentTransaction transaction = getParentFragmentManager().beginTransaction();
+        transaction.replace(R.id.frame_layout, studentScheduleLateFragment); // Use the correct container ID
+        transaction.addToBackStack(null);
+        transaction.commit();
+    }
+
 
     private static class LoadImageTask extends AsyncTask<String, Void, Bitmap> {
         private final WeakReference<ImageView> imageViewWeakReference;
