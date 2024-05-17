@@ -44,8 +44,9 @@
         libero vel nunc consequat, quis tincidunt nisl eleifend. Cras bibendum enim a justo luctus
         vestibulum. Fusce dictum libero quis erat maximus, vitae volutpat diam dignissim.
     </string>
-    
+
     <string name="late">You will be asked to input a valid\nreason for your late time in.</string>
+    <string name="ongoing_class">The class session is still ongoing. Your attendance has been recorded.</string>
 
     <!-- This is for student change password -->
     <string name="student_name">Clarissa Kiara A. Uy</string>

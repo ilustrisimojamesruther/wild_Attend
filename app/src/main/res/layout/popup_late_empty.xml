@@ -11,13 +11,18 @@
         android:layout_height="wrap_content"
         android:text="@string/late"
         android:layout_gravity="start"
-        android:layout_marginBottom="10dp"
         />
 
-    <Button
+    <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/closeButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:text="Close" />
+        android:layout_marginTop="10dp"
+        android:text="Close"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:textColor="#FFFFFF"
+        android:background="@drawable/border_button"
+        android:padding="12dp"
+        android:layout_gravity="center_horizontal"/>
 </LinearLayout>

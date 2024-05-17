@@ -82,13 +82,21 @@ public class StudentScheduleLate extends Fragment {
 
     private void showPopup(String message) {
         View popupView = getLayoutInflater().inflate(R.layout.popup_late_empty, null);
-        TextView popupText = popupView.findViewById(R.id.popupText);
-        popupText.setText(message);
 
         int width = ViewGroup.LayoutParams.WRAP_CONTENT;
         int height = ViewGroup.LayoutParams.WRAP_CONTENT;
         boolean focusable = true;
         PopupWindow popupWindow = new PopupWindow(popupView, width, height, focusable);
+
+        View rootView = getView();
+
+        View overlay = new View(requireContext());
+        overlay.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+        overlay.setBackgroundColor(getResources().getColor(android.R.color.transparent));
+        ((ViewGroup) rootView).addView(overlay);
+
+        overlay.setClickable(true);
+        overlay.setFocusable(true);
 
         popupWindow.showAtLocation(getView(), Gravity.CENTER, 0, 0);
 
@@ -103,13 +111,21 @@ public class StudentScheduleLate extends Fragment {
 
     private void showConfirmationPopup(String reason) {
         View popupView = getLayoutInflater().inflate(R.layout.popup_late_confirm, null);
-        TextView popupText = popupView.findViewById(R.id.popupText);
-        popupText.setText("Are you sure you want to submit this reason?\n" + reason);
 
         int width = ViewGroup.LayoutParams.WRAP_CONTENT;
         int height = ViewGroup.LayoutParams.WRAP_CONTENT;
         boolean focusable = true;
         PopupWindow popupWindow = new PopupWindow(popupView, width, height, focusable);
+
+        View rootView = getView();
+
+        View overlay = new View(requireContext());
+        overlay.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+        overlay.setBackgroundColor(getResources().getColor(android.R.color.transparent));
+        ((ViewGroup) rootView).addView(overlay);
+
+        overlay.setClickable(true);
+        overlay.setFocusable(true);
 
         popupWindow.showAtLocation(getView(), Gravity.CENTER, 0, 0);
 
