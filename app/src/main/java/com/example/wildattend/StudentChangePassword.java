@@ -1,12 +1,18 @@
 package com.example.wildattend;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.ImageButton;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
@@ -17,11 +23,21 @@ import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.EmailAuthProvider;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.lang.ref.WeakReference;
+import java.net.HttpURLConnection;
+import java.net.URL;
 
 public class StudentChangePassword extends Fragment {
 
     private EditText currentPasswordEditText, newPasswordEditText, reEnterNewPasswordEditText;
     private Button updatePasswordButton;
+    private ImageView profileImageView;
+    private TextView studentNameTextView;
 
     public StudentChangePassword() {
         // Required empty public constructor
@@ -36,15 +52,51 @@ public class StudentChangePassword extends Fragment {
         newPasswordEditText = view.findViewById(R.id.NewPassword);
         reEnterNewPasswordEditText = view.findViewById(R.id.ReEnterNewPassword);
         updatePasswordButton = view.findViewById(R.id.updatePassword);
+        profileImageView = view.findViewById(R.id.sample_image);
+        studentNameTextView = view.findViewById(R.id.studentName);
+
+        // Set OnClickListener for the back button
+        ImageButton backButton = view.findViewById(R.id.backButtonChangePassword);
+        backButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Navigate back to the previous page (you can customize this behavior as needed)
+                getActivity().onBackPressed();
+            }
+        });
 
         updatePasswordButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                updatePassword();
+                if (validateFields()) {
+                    updatePassword();
+                } else {
+                    Toast.makeText(getActivity(), "Please enter all fields", Toast.LENGTH_SHORT).show();
+                }
             }
         });
 
+        // Fetch user information
+        fetchUserInformation();
+
         return view;
+    }
+
+    private boolean validateFields() {
+        String currentPassword = currentPasswordEditText.getText().toString().trim();
+        String newPassword = newPasswordEditText.getText().toString().trim();
+        String reEnteredPassword = reEnterNewPasswordEditText.getText().toString().trim();
+
+        if (currentPassword.isEmpty() || newPassword.isEmpty() || reEnteredPassword.isEmpty()) {
+            return false;
+        }
+
+        if (!newPassword.equals(reEnteredPassword)) {
+            Toast.makeText(getActivity(), "New password and re-entered password do not match", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+
+        return true;
     }
 
     private void updatePassword() {
@@ -73,6 +125,8 @@ public class StudentChangePassword extends Fragment {
                                         public void onSuccess(Void aVoid) {
                                             // Password updated successfully
                                             Toast.makeText(getActivity(), "Password updated successfully", Toast.LENGTH_SHORT).show();
+                                            // Navigate back to the previous page (StudentProfile)
+                                            getActivity().onBackPressed();
                                         }
                                     })
                                     .addOnFailureListener(new OnFailureListener() {
@@ -94,6 +148,73 @@ public class StudentChangePassword extends Fragment {
         } else {
             // User is not authenticated
             Toast.makeText(getActivity(), "User is not authenticated", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void fetchUserInformation() {
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser != null) {
+            String userEmail = currentUser.getEmail();
+
+            FirebaseFirestore db = FirebaseFirestore.getInstance();
+            db.collection("users")
+                    .whereEqualTo("email", userEmail)
+                    .get()
+                    .addOnSuccessListener(queryDocumentSnapshots -> {
+                        for (QueryDocumentSnapshot documentSnapshot : queryDocumentSnapshots) {
+                            // Retrieve user information
+                            String firstName = documentSnapshot.getString("firstName");
+                            String lastName = documentSnapshot.getString("lastName");
+                            String imageUrl = documentSnapshot.getString("img");
+
+                            // Update UI with user information
+                            studentNameTextView.setText(firstName + " " + lastName);
+
+                            // Load image into the ImageView
+                            new LoadImageTask(profileImageView).execute(imageUrl);
+                        }
+                    })
+                    .addOnFailureListener(e -> {
+                        // Handle failure to fetch user information
+                        Toast.makeText(getActivity(), "Error fetching user document: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    });
+        } else {
+            // User is not authenticated
+            Toast.makeText(getActivity(), "User is not authenticated", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private static class LoadImageTask extends AsyncTask<String, Void, Bitmap> {
+        private final WeakReference<ImageView> imageViewWeakReference;
+
+        public LoadImageTask(ImageView imageView) {
+            this.imageViewWeakReference = new WeakReference<>(imageView);
+        }
+
+        @Override
+        protected Bitmap doInBackground(String... strings) {
+            String imageUrl = strings[0];
+            try {
+                URL url = new URL(imageUrl);
+                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                connection.setDoInput(true);
+                connection.connect();
+                InputStream input = connection.getInputStream();
+                return BitmapFactory.decodeStream(input);
+            } catch (IOException e) {
+                e.printStackTrace();
+                return null;
+            }
+        }
+
+        @Override
+        protected void onPostExecute(Bitmap bitmap) {
+            if (imageViewWeakReference != null && bitmap != null) {
+                ImageView imageView = imageViewWeakReference.get();
+                if (imageView != null) {
+                    imageView.setImageBitmap(bitmap);
+                }
+            }
         }
     }
 }
