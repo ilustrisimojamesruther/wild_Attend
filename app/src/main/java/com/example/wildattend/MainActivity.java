@@ -2,15 +2,14 @@ package com.example.wildattend;
 
 import android.content.Intent;
 import android.os.Bundle;
-import androidx.appcompat.app.AppCompatActivity;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
-
+import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
-import android.widget.Button;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AppCompatActivity;
+
+import com.google.firebase.auth.FirebaseUser;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -37,22 +36,37 @@ public class MainActivity extends AppCompatActivity {
         loginControl = new LoginControl(new LoginControl.LoginListener() {
             @Override
             public void onLoginSuccess(FirebaseUser user) {
-                // Handle successful login
-                String email = user.getEmail();
-                Toast.makeText(MainActivity.this, "Login successful for: " + email, Toast.LENGTH_SHORT).show();
-
-                // Redirect to StudentDashboard activity upon successful login
-                Intent intent = new Intent(MainActivity.this, StudentDashboard.class);
-                startActivity(intent);
-                finish();// Finish MainActivity to prevent going back when pressing back button
-
-                // You can perform additional operations here if needed
+                // This method is not used here as user data should be handled in onUserRoleReceived
             }
 
             @Override
             public void onLoginFailure(String message) {
                 // Handle login failure
                 Toast.makeText(MainActivity.this, message, Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onUserRoleReceived(String role) {
+                // Check if the user's role is allowed to log in
+                if (role != null) {
+                    if ("Student".equals(role)) {
+                        // Allow login for students
+                        Intent intent = new Intent(MainActivity.this, StudentDashboard.class);
+                        startActivity(intent);
+                        finish(); // Finish MainActivity to prevent going back when pressing back button
+                    } else if ("Faculty".equals(role)) {
+                        // Allow login for faculty
+                        Intent intent = new Intent(MainActivity.this, FacultyDashboard.class);
+                        startActivity(intent);
+                        finish(); // Finish MainActivity to prevent going back when pressing back button
+                    } else {
+                        // Disallow login for other roles
+                        Toast.makeText(MainActivity.this, "You are not authorized to log in.", Toast.LENGTH_SHORT).show();
+                    }
+                } else {
+                    // Handle scenario where role is not retrieved
+                    Toast.makeText(MainActivity.this, "Failed to fetch user role", Toast.LENGTH_SHORT).show();
+                }
             }
         });
     }
