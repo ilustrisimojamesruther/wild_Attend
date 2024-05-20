@@ -35,14 +35,12 @@
 
     <!-- Time (Aligned to the Right) -->
     <com.google.android.material.textview.MaterialTextView
-        android:id="@+id/time"
+        android:id="@+id/timeDisplay"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentEnd="true"
         android:layout_centerVertical="true"
         android:text="12:00 PM"
         android:textSize="14sp" />
-
-
 
 </RelativeLayout>

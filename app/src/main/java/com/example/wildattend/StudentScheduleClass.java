@@ -1,5 +1,7 @@
 package com.example.wildattend;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
@@ -13,8 +15,6 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
 import android.widget.TextView;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 
 import androidx.appcompat.widget.AppCompatButton;
 import androidx.fragment.app.Fragment;
@@ -31,11 +31,6 @@ import java.lang.ref.WeakReference;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
-/**
- * A simple {@link Fragment} subclass.
- * Use the {@link StudentScheduleClass#newInstance} factory method to
- * create an instance of this fragment.
- */
 public class StudentScheduleClass extends Fragment {
 
     private AppCompatButton presentButton;
@@ -48,17 +43,19 @@ public class StudentScheduleClass extends Fragment {
 
     private TextView studentNameTextView;
     private TextView idNumberTextView;
+    private TextView classNameTextView;
+    private TextView timeDisplay;
     private ImageView profile_image;
 
     public StudentScheduleClass() {
         // Required empty public constructor
     }
 
-    public static StudentScheduleClass newInstance(String param1, String param2) {
+    public static StudentScheduleClass newInstance(String className, String time) {
         StudentScheduleClass fragment = new StudentScheduleClass();
         Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
+        args.putString(ARG_PARAM1, className);
+        args.putString(ARG_PARAM2, time);
         fragment.setArguments(args);
         return fragment;
     }
@@ -84,25 +81,30 @@ public class StudentScheduleClass extends Fragment {
             }
         });
 
-        // Find and set OnClickListener for the back button
         ImageButton backButton = rootView.findViewById(R.id.backButtonClass);
         backButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // Handle back button click event, for example, pop the fragment from the back stack
                 if (getActivity() != null) {
                     getActivity().getSupportFragmentManager().popBackStack();
                 }
             }
         });
 
-        // Initialize views
         profile_image = rootView.findViewById(R.id.profile_image);
         studentNameTextView = rootView.findViewById(R.id.studentName);
         idNumberTextView = rootView.findViewById(R.id.idNumber);
+        classNameTextView = rootView.findViewById(R.id.className);
+        timeDisplay = rootView.findViewById(R.id.timeDisplay);
 
-        // Fetch and display user information
         fetchUserInformation();
+
+        if (getArguments() != null) {
+            String className = getArguments().getString(ARG_PARAM1);
+            String time = getArguments().getString(ARG_PARAM2);
+            classNameTextView.setText(className);
+            timeDisplay.setText(time);
+        }
 
         return rootView;
     }
@@ -114,7 +116,7 @@ public class StudentScheduleClass extends Fragment {
 
             FirebaseFirestore db = FirebaseFirestore.getInstance();
             db.collection("users")
-                    .whereEqualTo("email", userEmail) // Assuming the field in Firestore is "email"
+                    .whereEqualTo("email", userEmail)
                     .get()
                     .addOnSuccessListener(queryDocumentSnapshots -> {
                         for (QueryDocumentSnapshot documentSnapshot : queryDocumentSnapshots) {
@@ -123,11 +125,9 @@ public class StudentScheduleClass extends Fragment {
                             String idNumber = documentSnapshot.getString("idNum");
                             String imageUrl = documentSnapshot.getString("img");
 
-                            // Update UI with fetched information
                             studentNameTextView.setText(firstName + " " + lastName);
                             idNumberTextView.setText(idNumber);
 
-                            // Load the image from URL
                             new LoadImageTask(profile_image).execute(imageUrl);
                         }
                     })
@@ -136,7 +136,6 @@ public class StudentScheduleClass extends Fragment {
                     });
         } else {
             Log.e(TAG, "User is not authenticated");
-            // Handle the case where the user is not authenticated or has signed out
         }
     }
 
@@ -151,6 +150,7 @@ public class StudentScheduleClass extends Fragment {
         View rootView = getView();
 
         View overlay = new View(requireContext());
+
         overlay.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
         overlay.setBackgroundColor(getResources().getColor(android.R.color.transparent));
         ((ViewGroup) rootView).addView(overlay);
@@ -174,16 +174,13 @@ public class StudentScheduleClass extends Fragment {
     }
 
     private void navigateToStudentScheduleLate() {
-        // Create instance of StudentScheduleLate fragment
         StudentScheduleLate studentScheduleLateFragment = new StudentScheduleLate();
 
-        // Navigate to the StudentScheduleLate fragment
         FragmentTransaction transaction = getParentFragmentManager().beginTransaction();
-        transaction.replace(R.id.frame_layout, studentScheduleLateFragment); // Use the correct container ID
+        transaction.replace(R.id.frame_layout, studentScheduleLateFragment);
         transaction.addToBackStack(null);
         transaction.commit();
     }
-
 
     private static class LoadImageTask extends AsyncTask<String, Void, Bitmap> {
         private final WeakReference<ImageView> imageViewWeakReference;
@@ -210,7 +207,7 @@ public class StudentScheduleClass extends Fragment {
 
         @Override
         protected void onPostExecute(Bitmap bitmap) {
-            if (imageViewWeakReference != null && bitmap != null) {
+            if (bitmap != null) {
                 ImageView imageView = imageViewWeakReference.get();
                 if (imageView != null) {
                     imageView.setImageBitmap(bitmap);

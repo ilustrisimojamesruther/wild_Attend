@@ -81,7 +81,7 @@
             android:text="7:30 AM - 9:00 AM"
             android:textSize="14sp"
             android:textStyle="bold"
-            android:layout_gravity="end|top"/>
+            android:layout_gravity="end|top" />
 
         <!-- MaterialTextView (Centered) -->
         <com.google.android.material.textview.MaterialTextView
