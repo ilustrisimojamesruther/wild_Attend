@@ -8,7 +8,6 @@
     tools:context=".StudentScheduleLate">
 
     <!-- Circle Background -->
-
     <com.google.android.material.textview.MaterialTextView
         android:id="@+id/circleBackground"
         android:layout_width="70dp"
@@ -26,11 +25,12 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.222" />
 
+    <!-- Class Name -->
     <TextView
         android:id="@+id/textClassName"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Quality Assurance"
+        android:text=""
         android:textSize="18sp"
         android:textStyle="bold"
         android:layout_marginTop="10dp"
@@ -44,7 +44,7 @@
         android:id="@+id/textTime"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="7:30 AM - 9:00 AM"
+        android:text=""
         android:textSize="14sp"
         android:textStyle="bold"
         app:layout_constraintTop_toBottomOf="@id/textClassName"
@@ -89,6 +89,7 @@
         android:src="@drawable/baseline_arrow_back_24"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+
     <!-- Input Text Box -->
     <EditText
         android:id="@+id/inputReason"
@@ -105,8 +106,9 @@
         app:layout_constraintTop_toBottomOf="@id/textSubheader"
         app:layout_constraintVertical_bias="0.133" />
 
+    <!-- Submit Button -->
     <androidx.appcompat.widget.AppCompatButton
-        android:id="@+id/submitButton"
+        android:id="@+id/submitLateButton"
         android:layout_width="218dp"
         android:layout_height="44dp"
         android:layout_marginTop="50dp"

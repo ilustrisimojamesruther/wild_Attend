@@ -5,17 +5,15 @@ import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
-import android.widget.PopupWindow;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.widget.AppCompatButton;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
@@ -34,8 +32,8 @@ import java.net.URL;
 public class StudentScheduleClass extends Fragment {
 
     private AppCompatButton presentButton;
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
+    private static final String ARG_PARAM1 = "className";
+    private static final String ARG_PARAM2 = "time";
     private static final String TAG = "StudentScheduleClass";
 
     private String mParam1;
@@ -69,25 +67,17 @@ public class StudentScheduleClass extends Fragment {
         }
     }
 
+    @Nullable
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_student_schedule_class, container, false);
         presentButton = rootView.findViewById(R.id.presentButton);
-        presentButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                showPopup();
-            }
-        });
+        presentButton.setOnClickListener(view -> showPopup());
 
         ImageButton backButton = rootView.findViewById(R.id.backButtonClass);
-        backButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (getActivity() != null) {
-                    getActivity().getSupportFragmentManager().popBackStack();
-                }
+        backButton.setOnClickListener(v -> {
+            if (getActivity() != null) {
+                getActivity().getSupportFragmentManager().popBackStack();
             }
         });
 
@@ -131,50 +121,22 @@ public class StudentScheduleClass extends Fragment {
                             new LoadImageTask(profile_image).execute(imageUrl);
                         }
                     })
-                    .addOnFailureListener(e -> {
-                        Log.e(TAG, "Error fetching user document", e);
-                    });
+                    .addOnFailureListener(e -> Log.e(TAG, "Error fetching user document", e));
         } else {
             Log.e(TAG, "User is not authenticated");
         }
     }
 
     private void showPopup() {
-        View popupView = getLayoutInflater().inflate(R.layout.popup_late, null);
+        String className = classNameTextView.getText().toString();
+        String time = timeDisplay.getText().toString();
 
-        int width = LinearLayout.LayoutParams.WRAP_CONTENT;
-        int height = LinearLayout.LayoutParams.WRAP_CONTENT;
-        boolean focusable = true;
-        PopupWindow popupWindow = new PopupWindow(popupView, width, height, focusable);
+        Bundle args = new Bundle();
+        args.putString(ARG_PARAM1, className);
+        args.putString(ARG_PARAM2, time);
 
-        View rootView = getView();
-
-        View overlay = new View(requireContext());
-
-        overlay.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
-        overlay.setBackgroundColor(getResources().getColor(android.R.color.transparent));
-        ((ViewGroup) rootView).addView(overlay);
-
-        overlay.setClickable(true);
-        overlay.setFocusable(true);
-
-        popupWindow.showAtLocation(rootView, Gravity.CENTER, 0, 0);
-
-        Button continueButton = popupView.findViewById(R.id.continueButton);
-        continueButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                navigateToStudentScheduleLate();
-
-                ((ViewGroup) rootView).removeView(overlay);
-
-                popupWindow.dismiss();
-            }
-        });
-    }
-
-    private void navigateToStudentScheduleLate() {
-        StudentScheduleLate studentScheduleLateFragment = new StudentScheduleLate();
+        StudentScheduleLate studentScheduleLateFragment = StudentScheduleLate.newInstance(className, time);
+        studentScheduleLateFragment.setArguments(args);
 
         FragmentTransaction transaction = getParentFragmentManager().beginTransaction();
         transaction.replace(R.id.frame_layout, studentScheduleLateFragment);

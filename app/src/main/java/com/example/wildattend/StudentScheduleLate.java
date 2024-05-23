@@ -9,19 +9,30 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.PopupWindow;
-import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.ServerTimestamp;
+
+import java.util.Date;
+
 public class StudentScheduleLate extends Fragment {
 
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
+    private static final String ARG_PARAM1 = "className";
+    private static final String ARG_PARAM2 = "time";
 
     private String mParam1;
     private String mParam2;
+
+    @ServerTimestamp
+    private Date timestamp;
+
+    private Date classStartTime; // Assuming this is the start time of the class
 
     public StudentScheduleLate() {
         // Required empty public constructor
@@ -50,30 +61,21 @@ public class StudentScheduleLate extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_student_schedule_late, container, false);
 
-        // Find and set OnClickListener for the back button
         ImageButton backButton = rootView.findViewById(R.id.backButtonLate);
-        backButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Handle back button click event, for example, pop the fragment from the back stack
-                if (getActivity() != null) {
-                    getActivity().getSupportFragmentManager().popBackStack();
-                }
+        backButton.setOnClickListener(v -> {
+            if (getActivity() != null) {
+                getActivity().getSupportFragmentManager().popBackStack();
             }
         });
 
-        // Find and set OnClickListener for the submit button
-        Button submitButton = rootView.findViewById(R.id.submitButton);
+        Button submitButton = rootView.findViewById(R.id.submitLateButton);
         EditText inputReason = rootView.findViewById(R.id.inputReason);
-        submitButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String reason = inputReason.getText().toString().trim();
-                if (reason.isEmpty()) {
-                    showPopup("The text box is empty. Please fill it up.");
-                } else {
-                    showConfirmationPopup(reason);
-                }
+        submitButton.setOnClickListener(v -> {
+            String reason = inputReason.getText().toString().trim();
+            if (reason.isEmpty()) {
+                showPopup("The text box is empty. Please fill it up.");
+            } else {
+                updateUserStatus(reason);
             }
         });
 
@@ -82,69 +84,43 @@ public class StudentScheduleLate extends Fragment {
 
     private void showPopup(String message) {
         View popupView = getLayoutInflater().inflate(R.layout.popup_late_empty, null);
-
-        int width = ViewGroup.LayoutParams.WRAP_CONTENT;
-        int height = ViewGroup.LayoutParams.WRAP_CONTENT;
-        boolean focusable = true;
-        PopupWindow popupWindow = new PopupWindow(popupView, width, height, focusable);
-
-        View rootView = getView();
-
-        View overlay = new View(requireContext());
-        overlay.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
-        overlay.setBackgroundColor(getResources().getColor(android.R.color.transparent));
-        ((ViewGroup) rootView).addView(overlay);
-
-        overlay.setClickable(true);
-        overlay.setFocusable(true);
-
+        PopupWindow popupWindow = new PopupWindow(popupView, ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, true);
         popupWindow.showAtLocation(getView(), Gravity.CENTER, 0, 0);
 
         Button closeButton = popupView.findViewById(R.id.closeButton);
-        closeButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                popupWindow.dismiss();
-            }
-        });
+        closeButton.setOnClickListener(v -> popupWindow.dismiss());
     }
 
-    private void showConfirmationPopup(String reason) {
-        View popupView = getLayoutInflater().inflate(R.layout.popup_late_confirm, null);
-
-        int width = ViewGroup.LayoutParams.WRAP_CONTENT;
-        int height = ViewGroup.LayoutParams.WRAP_CONTENT;
-        boolean focusable = true;
-        PopupWindow popupWindow = new PopupWindow(popupView, width, height, focusable);
-
-        View rootView = getView();
-
-        View overlay = new View(requireContext());
-        overlay.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
-        overlay.setBackgroundColor(getResources().getColor(android.R.color.transparent));
-        ((ViewGroup) rootView).addView(overlay);
-
-        overlay.setClickable(true);
-        overlay.setFocusable(true);
-
-        popupWindow.showAtLocation(getView(), Gravity.CENTER, 0, 0);
-
-        Button yesButton = popupView.findViewById(R.id.yesButton);
-        Button noButton = popupView.findViewById(R.id.noButton);
-
-        yesButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Toast.makeText(getContext(), "Reason submitted: " + reason, Toast.LENGTH_SHORT).show();
-                popupWindow.dismiss();
+    private void updateUserStatus(String reason) {
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser != null) {
+            String userId = currentUser.getUid();
+            FirebaseFirestore db = FirebaseFirestore.getInstance();
+            String status = "On-Time"; // Default status
+            if (classStartTime != null && timestamp != null) {
+                long diffInMillis = timestamp.getTime() - classStartTime.getTime();
+                long diffInMinutes = diffInMillis / (60 * 1000);
+                if (diffInMinutes > 30) {
+                    status = "Absent";
+                } else if (diffInMinutes > 15) {
+                    status = "Late";
+                }
             }
-        });
-
-        noButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                popupWindow.dismiss();
-            }
-        });
+            db.collection("userAttendance")
+                    .document(userId)
+                    .update("message", reason, "status", status, "timeIn", timestamp)
+                    .addOnSuccessListener(aVoid -> {
+                        Toast.makeText(getContext(), "Attendance updated successfully!", Toast.LENGTH_SHORT).show();
+                        if (getActivity() != null) {
+                            getActivity().getSupportFragmentManager().popBackStack();
+                        }
+                    })
+                    .addOnFailureListener(e -> {
+                        Toast.makeText(getContext(), "Failed to update attendance!", Toast.LENGTH_SHORT).show();
+                        e.printStackTrace();
+                    });
+        } else {
+            Toast.makeText(getContext(), "User not authenticated!", Toast.LENGTH_SHORT).show();
+        }
     }
 }
