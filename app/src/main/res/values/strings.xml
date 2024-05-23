@@ -47,6 +47,8 @@
 
     <string name="late">You will be asked to input a valid\nreason for your late time in.</string>
     <string name="ongoing_class">The class session is still ongoing. Your attendance has been recorded.</string>
+    <string name="time_in">You have timed in successfully.</string>
+    <string name="time_out">You have now ended the class session.</string>
 
     <!-- This is for student change password -->
     <string name="student_name">Clarissa Kiara A. Uy</string>
@@ -61,5 +63,12 @@
 
     <!-- This is for student over all attendance-->
     <string name="logout_button_text">Export Attendance</string>
+
+    <!-- This is for faculty change password -->
+    <string name="faculty_name">Kath C.Abad</string>
+    <string name="fName">Faculty name</string>
+    <string name="FacultyChangePass">Change password</string>
+    <string name="checked_in">You have already checked\n in on time</string>
+    <string name="clock_out">You are yet to enter the\nclock out time.</string>
 
 </resources>

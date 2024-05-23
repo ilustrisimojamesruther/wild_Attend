@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:background="@drawable/class_border"
+    android:padding="16dp"
+    android:layout_width="328dp"
+    android:layout_height="229dp">
+
+    <TextView
+        android:id="@+id/timeInHeader"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Classes have started!"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:layout_gravity="start"
+        android:layout_marginBottom="10dp"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/time_in"
+        app:layout_constraintTop_toBottomOf="@id/timeInHeader"
+        android:layout_gravity="start"
+        android:layout_marginBottom="10dp"
+        />
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/continueButton"
+        android:layout_width="120dp"
+        android:layout_height="40dp"
+        android:text="Continue"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:textColor="#FFFFFF"
+        android:background="@drawable/border_button"
+        android:padding="12dp"
+        android:layout_gravity="center_horizontal"/>
+
+</LinearLayout>
