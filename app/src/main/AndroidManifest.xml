@@ -19,7 +19,7 @@
             android:exported="false" />
         <activity android:name=".StudentChangePassword" />
         <activity
-            android:name=".StudentScheduleClass"
+            android:name=".StudentScheduleTimeIn"
             android:exported="false"
             android:theme="@style/Theme.Wildattend" />
         <activity

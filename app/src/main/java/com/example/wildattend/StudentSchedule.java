@@ -146,7 +146,7 @@ public class StudentSchedule extends Fragment {
 
     private void navigateToClassSchedule(String classCode) {
         // Create instance of StudentScheduleClass fragment and pass class code as argument
-        StudentScheduleClass studentScheduleClassFragment = StudentScheduleClass.newInstance(classCode, null);
+        StudentScheduleTimeIn studentScheduleClassFragment = StudentScheduleTimeIn.newInstance(classCode, null);
 
         // Navigate to the StudentScheduleClass fragment
         getParentFragmentManager().beginTransaction()

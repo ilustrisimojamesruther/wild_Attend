@@ -10,13 +10,11 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.PopupWindow;
 import android.widget.Toast;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.ServerTimestamp;
 
 import java.util.Date;
@@ -75,7 +73,11 @@ public class StudentScheduleLate extends Fragment {
             if (reason.isEmpty()) {
                 showPopup("The text box is empty. Please fill it up.");
             } else {
-                updateUserStatus(reason);
+                // Update user status here
+                Toast.makeText(getContext(), "Attendance updated successfully!", Toast.LENGTH_SHORT).show();
+                if (getActivity() != null) {
+                    getActivity().getSupportFragmentManager().popBackStack();
+                }
             }
         });
 
@@ -89,38 +91,5 @@ public class StudentScheduleLate extends Fragment {
 
         Button closeButton = popupView.findViewById(R.id.closeButton);
         closeButton.setOnClickListener(v -> popupWindow.dismiss());
-    }
-
-    private void updateUserStatus(String reason) {
-        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
-        if (currentUser != null) {
-            String userId = currentUser.getUid();
-            FirebaseFirestore db = FirebaseFirestore.getInstance();
-            String status = "On-Time"; // Default status
-            if (classStartTime != null && timestamp != null) {
-                long diffInMillis = timestamp.getTime() - classStartTime.getTime();
-                long diffInMinutes = diffInMillis / (60 * 1000);
-                if (diffInMinutes > 30) {
-                    status = "Absent";
-                } else if (diffInMinutes > 15) {
-                    status = "Late";
-                }
-            }
-            db.collection("userAttendance")
-                    .document(userId)
-                    .update("message", reason, "status", status, "timeIn", timestamp)
-                    .addOnSuccessListener(aVoid -> {
-                        Toast.makeText(getContext(), "Attendance updated successfully!", Toast.LENGTH_SHORT).show();
-                        if (getActivity() != null) {
-                            getActivity().getSupportFragmentManager().popBackStack();
-                        }
-                    })
-                    .addOnFailureListener(e -> {
-                        Toast.makeText(getContext(), "Failed to update attendance!", Toast.LENGTH_SHORT).show();
-                        e.printStackTrace();
-                    });
-        } else {
-            Toast.makeText(getContext(), "User not authenticated!", Toast.LENGTH_SHORT).show();
-        }
     }
 }

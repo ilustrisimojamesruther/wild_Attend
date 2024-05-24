@@ -71,4 +71,11 @@
     <string name="checked_in">You have already checked\n in on time</string>
     <string name="clock_out">You are yet to enter the\nclock out time.</string>
 
+
+    <string name="you_are_late">You are late</string>
+    <string name="continue_button">Continue</string>
+    <string name="close_button">Close</string>
+
+
+
 </resources>
