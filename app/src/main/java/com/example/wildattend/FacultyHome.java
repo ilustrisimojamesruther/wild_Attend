@@ -13,7 +13,9 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.ImageView;
+import android.widget.ListView;
 import android.widget.TextView;
 
 import com.google.firebase.auth.FirebaseAuth;
@@ -32,13 +34,10 @@ import java.util.Locale;
 
 public class FacultyHome extends Fragment {
 
+    private ListView attendanceLogListView;
     private static final String TAG = "FacultyHome";
-
     private TextView facultyNameTextView;
-    private TextView dateTextView;
     private ImageView profile_image;
-
-
 
     public FacultyHome() {
         // Required empty public constructor
@@ -48,8 +47,11 @@ public class FacultyHome extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_faculty_home, container, false);
+
+        // Initialize the views
         facultyNameTextView = rootView.findViewById(R.id.home_header);
         profile_image = rootView.findViewById(R.id.profile_image);
+        attendanceLogListView = rootView.findViewById(R.id.attendanceLogListView);
 
         // Set the current date
         TextView dateTextView = rootView.findViewById(R.id.date);
@@ -58,6 +60,9 @@ public class FacultyHome extends Fragment {
 
         // Fetch and display user information
         fetchUserInformation();
+
+        // Setup the attendance log ListView
+        setupListView(inflater);
 
         return rootView;
     }
@@ -81,7 +86,7 @@ public class FacultyHome extends Fragment {
                             facultyNameTextView.setText("Good Morning," + " " + firstName + "!");
 
                             // Load the image from URL
-                            new FacultyHome.LoadImageTask(profile_image).execute(imageUrl);
+                            new LoadImageTask(profile_image).execute(imageUrl);
                         }
                     })
                     .addOnFailureListener(e -> {
@@ -91,6 +96,26 @@ public class FacultyHome extends Fragment {
             Log.e(TAG, "User is not authenticated");
             // Handle the case where the user is not authenticated or has signed out
         }
+    }
+
+    private void setupListView(LayoutInflater inflater) {
+        // Sample data for the ListView
+        String[] attendanceLogs = {
+                "Time In",
+                "Start Class",
+                "End Class",
+                "Rest Break"
+        };
+
+        // Create an ArrayAdapter to display the attendance log items
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(requireContext(), R.layout.list_attendance_log, R.id.actionText, attendanceLogs);
+
+        // Inflate the header layout and add it to the ListView
+        View headerView = inflater.inflate(R.layout.header_list_attendance_log, null);
+        attendanceLogListView.addHeaderView(headerView);
+
+        // Set the adapter to the ListView
+        attendanceLogListView.setAdapter(adapter);
     }
 
     private static class LoadImageTask extends AsyncTask<String, Void, Bitmap> {
@@ -126,6 +151,4 @@ public class FacultyHome extends Fragment {
             }
         }
     }
-
-
 }

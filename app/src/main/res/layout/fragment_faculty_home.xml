@@ -332,4 +332,20 @@
         android:layout_height="wrap_content"
         app:layout_constraintGuide_percent="0.5" />
 
+
+    <!-- ListView for the Attendance Log -->
+    <ListView
+        android:id="@+id/attendanceLogListView"
+        android:layout_width="380dp"
+        android:layout_height="300dp"
+        android:layout_marginTop="16dp"
+        android:background="@drawable/border_background_v2"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.483"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/frame4"
+        app:layout_constraintVertical_bias="0.0" />
+
+
 </androidx.constraintlayout.widget.ConstraintLayout>

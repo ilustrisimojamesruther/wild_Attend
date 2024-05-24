@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="60dp"
+    android:orientation="horizontal"
+    android:background="@drawable/log_border"
+    android:paddingHorizontal="30dp">
+
+    <!-- Start icon -->
+    <ImageView
+        android:id="@+id/startIcon"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:src="@drawable/icon_timeout"
+        android:layout_gravity="center_vertical"
+        android:layout_marginEnd="8dp" />
+
+    <!-- TextView for Action -->
+    <TextView
+        android:id="@+id/actionText"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="Action"
+        android:textColor="@android:color/black"
+        android:textSize="16sp"
+        android:layout_gravity="center_vertical" />
+
+    <!-- End icon -->
+    <ImageView
+        android:id="@+id/endIcon"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:src="@drawable/icon_timein"
+        android:layout_gravity="center_vertical"
+        android:layout_marginEnd="8dp" />
+
+    <!-- TextView for Time -->
+    <TextView
+        android:id="@+id/timeText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="7:30 AM"
+        android:textColor="@android:color/black"
+        android:textSize="16sp"
+        android:layout_gravity="center_vertical" />
+</LinearLayout>

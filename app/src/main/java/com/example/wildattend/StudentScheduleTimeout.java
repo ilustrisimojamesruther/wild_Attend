@@ -1,11 +1,15 @@
 package com.example.wildattend;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -16,12 +20,23 @@ import androidx.fragment.app.Fragment;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.lang.ref.WeakReference;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.Date;
 
 public class StudentScheduleTimeout extends Fragment {
 
     private AppCompatButton timeOutButton;
+
+    private TextView studentNameTextView;
+    private TextView idNumberTextView;
+
+    private ImageView profile_image;
     private static final String ARG_PARAM1 = "className";
     private static final String ARG_PARAM2 = "time";
     private static final String TAG = "StudentScheduleTimeout";
@@ -60,8 +75,13 @@ public class StudentScheduleTimeout extends Fragment {
         View rootView = inflater.inflate(R.layout.fragment_student_schedule_timeout, container, false);
         timeOutButton = rootView.findViewById(R.id.timeOutButton);
 
+        profile_image = rootView.findViewById(R.id.profile_image);
+        studentNameTextView = rootView.findViewById(R.id.studentName);
+        idNumberTextView = rootView.findViewById(R.id.idNumber);
         classNameTextView = rootView.findViewById(R.id.className);
         timeDisplay = rootView.findViewById(R.id.timeDisplay);
+
+        fetchUserInformation();
 
         if (getArguments() != null) {
             String className = getArguments().getString(ARG_PARAM1);
@@ -78,6 +98,68 @@ public class StudentScheduleTimeout extends Fragment {
         timeOutButton.setOnClickListener(v -> timeOut());
 
         return rootView;
+    }
+
+    private void fetchUserInformation() {
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser != null) {
+            String userEmail = currentUser.getEmail();
+
+            FirebaseFirestore db = FirebaseFirestore.getInstance();
+            db.collection("users")
+                    .whereEqualTo("email", userEmail)
+                    .get()
+                    .addOnSuccessListener(queryDocumentSnapshots -> {
+                        for (QueryDocumentSnapshot documentSnapshot : queryDocumentSnapshots) {
+                            String firstName = documentSnapshot.getString("firstName");
+                            String lastName = documentSnapshot.getString("lastName");
+                            String idNumber = documentSnapshot.getString("idNum");
+                            String imageUrl = documentSnapshot.getString("img");
+
+                            studentNameTextView.setText(firstName + " " + lastName);
+                            idNumberTextView.setText(idNumber);
+
+                            new StudentScheduleTimeout.LoadImageTask(profile_image).execute(imageUrl);
+                        }
+                    })
+                    .addOnFailureListener(e -> Log.e(TAG, "Error fetching user document", e));
+        } else {
+            Log.e(TAG, "User is not authenticated");
+        }
+    }
+
+    private static class LoadImageTask extends AsyncTask<String, Void, Bitmap> {
+        private WeakReference<ImageView> imageViewReference;
+
+        public LoadImageTask(ImageView imageView) {
+            imageViewReference = new WeakReference<>(imageView);
+        }
+
+        @Override
+        protected Bitmap doInBackground(String... params) {
+            String urlString = params[0];
+            try {
+                URL url = new URL(urlString);
+                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                connection.setDoInput(true);
+                connection.connect();
+                InputStream input = connection.getInputStream();
+                return BitmapFactory.decodeStream(input);
+            } catch (IOException e) {
+                e.printStackTrace();
+                return null;
+            }
+        }
+
+        @Override
+        protected void onPostExecute(Bitmap bitmap) {
+            if (imageViewReference != null && bitmap != null) {
+                final ImageView imageView = imageViewReference.get();
+                if (imageView != null) {
+                    imageView.setImageBitmap(bitmap);
+                }
+            }
+        }
     }
 
     private void timeOut() {
