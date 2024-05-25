@@ -5,11 +5,13 @@ import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.PopupWindow;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -119,7 +121,7 @@ public class StudentScheduleTimeout extends Fragment {
                             studentNameTextView.setText(firstName + " " + lastName);
                             idNumberTextView.setText(idNumber);
 
-                            new StudentScheduleTimeout.LoadImageTask(profile_image).execute(imageUrl);
+                            new LoadImageTask(profile_image).execute(imageUrl);
                         }
                     })
                     .addOnFailureListener(e -> Log.e(TAG, "Error fetching user document", e));
@@ -176,15 +178,23 @@ public class StudentScheduleTimeout extends Fragment {
                     .update("timeOut", timestamp)
                     .addOnSuccessListener(aVoid -> {
                         Log.d(TAG, "Time out recorded successfully!");
-                        // Display a message or perform any additional action upon successful time-out
+                        showTimeoutPopup();
                     })
-                    .addOnFailureListener(e -> {
-                        Log.e(TAG, "Error recording time out", e);
-                        // Handle error
-                    });
+                    .addOnFailureListener(e -> Log.e(TAG, "Error recording time out", e));
         } else {
             Log.e(TAG, "User not authenticated");
-            // Handle authentication error
         }
+    }
+
+    private void showTimeoutPopup() {
+        View popupView = getLayoutInflater().inflate(R.layout.popup_timeout, null);
+        PopupWindow popupWindow = new PopupWindow(popupView, ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, true);
+        popupWindow.showAtLocation(requireView(), Gravity.CENTER, 0, 0);
+
+        AppCompatButton continueButton = popupView.findViewById(R.id.continueButton);
+        continueButton.setOnClickListener(v -> {
+            popupWindow.dismiss();
+            getActivity().onBackPressed(); // Navigate back to the previous fragment/activity
+        });
     }
 }
