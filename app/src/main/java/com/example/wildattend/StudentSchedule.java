@@ -48,7 +48,7 @@ public class StudentSchedule extends Fragment {
         studentNameTextView = rootView.findViewById(R.id.studentName);
         idNumberTextView = rootView.findViewById(R.id.idNumber);
         listView = rootView.findViewById(R.id.list_view_schedule);
-        profile_image = rootView.findViewById(R.id.profile_image);
+        profile_image = rootView.findViewById(R.id.profile_image_faculty);
 
         fetchUserInformation();
         setupListView();

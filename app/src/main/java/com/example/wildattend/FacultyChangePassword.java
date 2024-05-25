@@ -1,5 +1,3 @@
-//FacultyChangePassword
-
 package com.example.wildattend;
 
 import android.graphics.Bitmap;
@@ -15,6 +13,7 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.ImageButton;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -73,9 +72,21 @@ public class FacultyChangePassword extends Fragment {
 
         profileImageView = view.findViewById(R.id.profilepicture);
         facultyNameTextView = view.findViewById(R.id.facultyName);
+        ImageButton backButton = view.findViewById(R.id.backButtonChangePassword);
 
         fetchUserInformation();
+
+        backButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Navigate back to the previous screen (assuming it's an activity)
+                if (getActivity() != null) {
+                    getActivity().onBackPressed();
+                }
+            }
+        });
     }
+
 
     private void fetchUserInformation() {
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
@@ -139,11 +150,16 @@ public class FacultyChangePassword extends Fragment {
         }
     }
 
-
     private void updatePassword() {
         String currentPassword = fcurrentPasswordEditText.getText().toString().trim();
         String newPassword = fnewPasswordEditText.getText().toString().trim();
         String reEnteredPassword = freEnterNewPasswordEditText.getText().toString().trim();
+
+        // Check if any field is empty
+        if (currentPassword.isEmpty() || newPassword.isEmpty() || reEnteredPassword.isEmpty()) {
+            Toast.makeText(getActivity(), "Please enter all fields", Toast.LENGTH_SHORT).show();
+            return;
+        }
 
         // Check if new password and re-entered password match
         if (!newPassword.equals(reEnteredPassword)) {

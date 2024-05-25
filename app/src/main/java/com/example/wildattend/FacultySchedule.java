@@ -4,11 +4,6 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.os.Bundle;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
-
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -17,6 +12,10 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -28,7 +27,8 @@ import java.io.InputStream;
 import java.lang.ref.WeakReference;
 import java.net.HttpURLConnection;
 import java.net.URL;
-
+import java.util.ArrayList;
+import java.util.List;
 
 public class FacultySchedule extends Fragment {
 
@@ -38,25 +38,19 @@ public class FacultySchedule extends Fragment {
     private TextView idNumberTextView;
     private ListView listView;
     private ArrayAdapter<String> adapter;
-
     private ImageView profile_image;
-
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
         View rootView = inflater.inflate(R.layout.fragment_faculty_schedule, container, false);
 
         facultyNameTextView = rootView.findViewById(R.id.facultyName);
         idNumberTextView = rootView.findViewById(R.id.idNumber);
         listView = rootView.findViewById(R.id.list_view_schedule);
-        profile_image = rootView.findViewById(R.id.profile_image);
+        profile_image = rootView.findViewById(R.id.profile_image_faculty);
 
-        // Fetch and display user information
         fetchUserInformation();
-
-        // Set up the ListView
         setupListView();
 
         return rootView;
@@ -69,7 +63,7 @@ public class FacultySchedule extends Fragment {
 
             FirebaseFirestore db = FirebaseFirestore.getInstance();
             db.collection("users")
-                    .whereEqualTo("email", userEmail) // Assuming the field in Firestore is "email"
+                    .whereEqualTo("email", userEmail)
                     .get()
                     .addOnSuccessListener(queryDocumentSnapshots -> {
                         for (QueryDocumentSnapshot documentSnapshot : queryDocumentSnapshots) {
@@ -78,12 +72,12 @@ public class FacultySchedule extends Fragment {
                             String idNumber = documentSnapshot.getString("idNum");
                             String imageUrl = documentSnapshot.getString("img");
 
-                            // Update UI with fetched information
                             facultyNameTextView.setText(firstName + " " + lastName);
                             idNumberTextView.setText(idNumber);
 
-                            // Load the image from URL
-                            new FacultySchedule.LoadImageTask(profile_image).execute(imageUrl);
+                            new LoadImageTask(profile_image).execute(imageUrl);
+
+                            fetchUserClasses(currentUser.getUid());
                         }
                     })
                     .addOnFailureListener(e -> {
@@ -91,29 +85,74 @@ public class FacultySchedule extends Fragment {
                     });
         } else {
             Log.e(TAG, "User is not authenticated");
-            // Handle the case where the user is not authenticated or has signed out
         }
     }
 
+    private void fetchUserClasses(String userId) {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        db.collection("userClasses")
+                .whereEqualTo("userID", userId)
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    for (QueryDocumentSnapshot documentSnapshot : queryDocumentSnapshots) {
+                        String classID = documentSnapshot.getString("classID");
+                        fetchClassDetails(classID);
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error fetching user classes", e);
+                });
+    }
+
+    private void fetchClassDetails(String classID) {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        db.collection("classes")
+                .document(classID)
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        String classCode = documentSnapshot.getString("classCode");
+                        String classDesc = documentSnapshot.getString("classDesc");
+                        String startTime = documentSnapshot.getString("startTime");
+                        String endTime = documentSnapshot.getString("endTime");
+
+                        adapter.add(classCode + " - " + classDesc + " (" + startTime + " - " + endTime + ")");
+                    } else {
+                        Log.e(TAG, "Class document does not exist");
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error fetching class details", e);
+                });
+    }
+
     private void setupListView() {
-        // Sample data for schedule items
-        String[] scheduleItems = {"HAM044", "BOT066", "VER001", "JKL012", "MNO123"};
-
-        // Create an ArrayAdapter to display the schedule items
-        adapter = new ArrayAdapter<>(requireContext(), R.layout.list_class_schedule, R.id.course_code, scheduleItems);
-
-        // Set the adapter to the ListView
+        List<String> scheduleItems = new ArrayList<>();
+        adapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_list_item_1, scheduleItems);
         listView.setAdapter(adapter);
 
+        // Set item click listener to navigate to class schedule
         listView.setOnItemClickListener((parent, view, position, id) -> {
-            // Replace with the fragment you want to navigate to
-            Fragment fragment = new FacultyScheduleClass();
-            getParentFragmentManager()
-                    .beginTransaction()
-                    .replace(R.id.faculty_frame_layout, fragment)
-                    .addToBackStack(null)
-                    .commit();
+            String selectedItem = adapter.getItem(position);
+            if (selectedItem != null) {
+                // Extract class code from the selected item
+                String classCode = selectedItem.split(" - ")[0];
+
+                // Navigate to the detailed schedule of the selected class
+                navigateToClassSchedule(classCode);
+            }
         });
+    }
+
+    private void navigateToClassSchedule(String classCode) {
+        // Create instance of FacultyScheduleTimeIn fragment and pass class code as argument
+        FacultyScheduleTimeIn facultyScheduleTimeInFragment = FacultyScheduleTimeIn.newInstance(classCode, null);
+
+        // Navigate to the FacultyScheduleTimeIn fragment
+        getParentFragmentManager().beginTransaction()
+                .replace(R.id.faculty_frame_layout, facultyScheduleTimeInFragment)
+                .addToBackStack(null)
+                .commit();
     }
 
     private static class LoadImageTask extends AsyncTask<String, Void, Bitmap> {

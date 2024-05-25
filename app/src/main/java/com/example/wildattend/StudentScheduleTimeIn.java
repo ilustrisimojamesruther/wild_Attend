@@ -78,7 +78,7 @@ public class StudentScheduleTimeIn extends Fragment {
         View rootView = inflater.inflate(R.layout.fragment_student_schedule_timein, container, false);
         presentButton = rootView.findViewById(R.id.timeInButton); // Changed from timeInButton
 
-        profile_image = rootView.findViewById(R.id.profile_image);
+        profile_image = rootView.findViewById(R.id.profile_image_faculty);
         studentNameTextView = rootView.findViewById(R.id.studentName);
         idNumberTextView = rootView.findViewById(R.id.idNumber);
         classNameTextView = rootView.findViewById(R.id.className);

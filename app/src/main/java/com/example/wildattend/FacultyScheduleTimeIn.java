@@ -4,11 +4,6 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.os.Bundle;
-
-import androidx.appcompat.widget.AppCompatButton;
-import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentTransaction;
-
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -21,6 +16,10 @@ import android.widget.LinearLayout;
 import android.widget.PopupWindow;
 import android.widget.TextView;
 
+import androidx.appcompat.widget.AppCompatButton;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentTransaction;
+
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -31,13 +30,9 @@ import java.io.InputStream;
 import java.lang.ref.WeakReference;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.Date;
 
-/**
- * A simple {@link Fragment} subclass.
- * Use the {@link FacultyScheduleClass#newInstance} factory method to
- * create an instance of this fragment.
- */
-public class FacultyScheduleClass extends Fragment {
+public class FacultyScheduleTimeIn extends Fragment {
 
     private AppCompatButton timeinButton;
     private static final String ARG_PARAM1 = "param1";
@@ -51,12 +46,12 @@ public class FacultyScheduleClass extends Fragment {
     private TextView idNumberTextView;
     private ImageView profile_image;
 
-    public FacultyScheduleClass() {
+    public FacultyScheduleTimeIn() {
         // Required empty public constructor
     }
 
-    public static FacultyScheduleClass newInstance(String param1, String param2) {
-        FacultyScheduleClass fragment = new FacultyScheduleClass();
+    public static FacultyScheduleTimeIn newInstance(String param1, String param2) {
+        FacultyScheduleTimeIn fragment = new FacultyScheduleTimeIn();
         Bundle args = new Bundle();
         args.putString(ARG_PARAM1, param1);
         args.putString(ARG_PARAM2, param2);
@@ -76,12 +71,12 @@ public class FacultyScheduleClass extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View rootView = inflater.inflate(R.layout.fragment_faculty_schedule_class, container, false);
+        View rootView = inflater.inflate(R.layout.fragment_faculty_schedule_timein, container, false);
         timeinButton = rootView.findViewById(R.id.timeInButton);
         timeinButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                showPopup();
+                timeIn(); // Call the method to record time in
             }
         });
 
@@ -98,11 +93,11 @@ public class FacultyScheduleClass extends Fragment {
         });
 
         // Initialize views
-        profile_image = rootView.findViewById(R.id.profile_image);
+        profile_image = rootView.findViewById(R.id.profile_image_faculty);
         facultyNameTextView = rootView.findViewById(R.id.facultyName);
         idNumberTextView = rootView.findViewById(R.id.idNumber);
 
-//        // Fetch and display user information
+        // Fetch and display user information
         fetchUserInformation();
 
         return rootView;
@@ -129,7 +124,7 @@ public class FacultyScheduleClass extends Fragment {
                             idNumberTextView.setText(idNumber);
 
                             // Load the image from URL
-                            new FacultyScheduleClass.LoadImageTask(profile_image).execute(imageUrl);
+                            new LoadImageTask(profile_image).execute(imageUrl);
                         }
                     })
                     .addOnFailureListener(e -> {
@@ -138,6 +133,35 @@ public class FacultyScheduleClass extends Fragment {
         } else {
             Log.e(TAG, "User is not authenticated");
             // Handle the case where the user is not authenticated or has signed out
+        }
+    }
+
+    private void timeIn() {
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser != null) {
+            String userId = currentUser.getUid();
+            String className = mParam1; // Assuming you have the class name available
+            String time = mParam2; // Assuming you have the class time available
+            String message = "I'm here on time"; // Default message, you can customize this
+            Date timestamp = new Date(); // Get current timestamp
+
+            AttendanceRecord attendanceRecord = new AttendanceRecord(userId, message, "On-Time", timestamp, null, className);
+            FirebaseFirestore db = FirebaseFirestore.getInstance();
+            db.collection("attendRecord")
+                    .document(userId)
+                    .set(attendanceRecord)
+                    .addOnSuccessListener(aVoid -> {
+                        Log.d(TAG, "Time in recorded successfully!");
+                        // Show the popup when time in is recorded successfully
+                        showPopup();
+                    })
+                    .addOnFailureListener(e -> {
+                        Log.e(TAG, "Error recording time in", e);
+                        // Handle error
+                    });
+        } else {
+            Log.e(TAG, "User not authenticated");
+            // Handle authentication error
         }
     }
 
@@ -184,8 +208,6 @@ public class FacultyScheduleClass extends Fragment {
         transaction.addToBackStack(null);
         transaction.commit();
     }
-
-
 
     private static class LoadImageTask extends AsyncTask<String, Void, Bitmap> {
         private final WeakReference<ImageView> imageViewWeakReference;

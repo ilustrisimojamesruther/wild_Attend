@@ -50,7 +50,7 @@ public class FacultyHome extends Fragment {
 
         // Initialize the views
         facultyNameTextView = rootView.findViewById(R.id.home_header);
-        profile_image = rootView.findViewById(R.id.profile_image);
+        profile_image = rootView.findViewById(R.id.profile_image_faculty);
         attendanceLogListView = rootView.findViewById(R.id.attendanceLogListView);
 
         // Set the current date

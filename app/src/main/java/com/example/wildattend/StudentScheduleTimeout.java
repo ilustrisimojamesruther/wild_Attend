@@ -75,9 +75,9 @@ public class StudentScheduleTimeout extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_student_schedule_timeout, container, false);
-        timeOutButton = rootView.findViewById(R.id.timeOutButton);
+        timeOutButton = rootView.findViewById(R.id.facultyTimeOutButton);
 
-        profile_image = rootView.findViewById(R.id.profile_image);
+        profile_image = rootView.findViewById(R.id.profile_image_faculty);
         studentNameTextView = rootView.findViewById(R.id.studentName);
         idNumberTextView = rootView.findViewById(R.id.idNumber);
         classNameTextView = rootView.findViewById(R.id.className);
