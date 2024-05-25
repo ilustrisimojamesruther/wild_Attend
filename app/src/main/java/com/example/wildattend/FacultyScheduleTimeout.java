@@ -164,7 +164,7 @@ public class FacultyScheduleTimeout extends Fragment {
             FragmentManager fragmentManager = requireActivity().getSupportFragmentManager();
             fragmentManager.popBackStack(); // Clear the back stack
             FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-            fragmentTransaction.replace(R.id.fragment_container, new FacultySchedule());
+            fragmentTransaction.replace(R.id.faculty_frame_layout, new FacultySchedule());
             fragmentTransaction.commit();
             popupWindow.dismiss(); // Dismiss the popup window after navigation
         });
