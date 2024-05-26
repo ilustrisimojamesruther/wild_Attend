@@ -20,8 +20,10 @@ import androidx.fragment.app.FragmentTransaction;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.SetOptions;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -29,6 +31,8 @@ import java.lang.ref.WeakReference;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 public class FacultyScheduleTimeout extends Fragment {
 
@@ -131,14 +135,22 @@ public class FacultyScheduleTimeout extends Fragment {
             Date timestamp = new Date(); // Get current timestamp
 
             FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+            // Create a map to hold the time out data
+            Map<String, Object> timeoutData = new HashMap<>();
+            timeoutData.put("timeOut", timestamp);
+
+            // Use set with SetOptions.merge() to update the document with time out
             db.collection("attendRecord")
-                    .document(userId)
-                    .update("timeOut", timestamp)
+                    .document(userId + "_" + className)
+                    .set(timeoutData, SetOptions.merge())
                     .addOnSuccessListener(aVoid -> {
                         Log.d(TAG, "Time out recorded successfully!");
                         showTimeoutPopup();
                     })
-                    .addOnFailureListener(e -> Log.e(TAG, "Error recording time out", e));
+                    .addOnFailureListener(e -> {
+                        Log.e(TAG, "Error recording time out", e);
+                    });
         } else {
             Log.e(TAG, "User not authenticated");
         }
@@ -175,7 +187,6 @@ public class FacultyScheduleTimeout extends Fragment {
             popupWindow.dismiss();
         });
     }
-
 
     private static class FacultyLoadImageTask extends AsyncTask<String, Void, Bitmap> {
         private final WeakReference<ImageView> imageViewWeakReference;

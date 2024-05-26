@@ -9,7 +9,6 @@ import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -24,6 +23,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.SetOptions;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -31,13 +31,15 @@ import java.lang.ref.WeakReference;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 public class FacultyScheduleTimeIn extends Fragment {
 
     private AppCompatButton timeinButton;
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
-    private static final String TAG = "FacultyScheduleClass";
+    private static final String TAG = "FacultyScheduleTimeIn";
 
     private String mParam1;
     private String mParam2;
@@ -145,11 +147,20 @@ public class FacultyScheduleTimeIn extends Fragment {
             String message = "I'm here on time"; // Default message, you can customize this
             Date timestamp = new Date(); // Get current timestamp
 
-            AttendanceRecord attendanceRecord = new AttendanceRecord(userId, message, "On-Time", timestamp, null, className);
             FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+            // Create a map to hold the attendance data
+            Map<String, Object> attendanceRecord = new HashMap<>();
+            attendanceRecord.put("userId", userId);
+            attendanceRecord.put("message", message);
+            attendanceRecord.put("status", "On-Time");
+            attendanceRecord.put("timeIn", timestamp);
+            attendanceRecord.put("className", className);
+
+            // Use set with SetOptions.merge() to update the document if it exists or create it if it doesn't
             db.collection("attendRecord")
-                    .document(userId)
-                    .set(attendanceRecord)
+                    .document(userId + "_" + className)
+                    .set(attendanceRecord, SetOptions.merge())
                     .addOnSuccessListener(aVoid -> {
                         Log.d(TAG, "Time in recorded successfully!");
                         // Show the popup when time in is recorded successfully
@@ -185,7 +196,7 @@ public class FacultyScheduleTimeIn extends Fragment {
 
         popupWindow.showAtLocation(rootView, Gravity.CENTER, 0, 0);
 
-        Button continueButton = popupView.findViewById(R.id.continueButton);
+        AppCompatButton continueButton = popupView.findViewById(R.id.continueButton);
         continueButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -200,7 +211,7 @@ public class FacultyScheduleTimeIn extends Fragment {
 
     private void navigateToFacultyScheduleTimeout() {
         // Create instance of FacultyScheduleTimeout fragment
-        FacultyScheduleTimeout facultyScheduleTimeoutFragment = new FacultyScheduleTimeout();
+        FacultyScheduleTimeout facultyScheduleTimeoutFragment = FacultyScheduleTimeout.newInstance(mParam1, mParam2);
 
         // Navigate to the FacultyScheduleTimeout fragment
         FragmentTransaction transaction = getParentFragmentManager().beginTransaction();

@@ -5,27 +5,26 @@ import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
-import android.widget.TextView;
 import android.widget.ImageButton;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.PopupWindow;
-import android.graphics.drawable.ColorDrawable;
-import android.os.Build;
-import android.graphics.Color;
-import android.view.Gravity;
+import android.widget.TextView;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.appcompat.widget.AppCompatButton;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentTransaction;
 
+import com.google.android.material.imageview.ShapeableImageView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.SetOptions;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -33,32 +32,32 @@ import java.lang.ref.WeakReference;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 public class StudentScheduleTimeIn extends Fragment {
 
-    private AppCompatButton presentButton; // Renamed from timeInButton
-    private static final String ARG_PARAM1 = "className";
-    private static final String ARG_PARAM2 = "time";
-    private static final String TAG = "StudentScheduleClass";
+    private AppCompatButton timeinButton;
+    private static final String ARG_PARAM1 = "param1";
+    private static final String ARG_PARAM2 = "param2";
+    private static final String TAG = "StudentScheduleTimeIn";
 
     private String mParam1;
     private String mParam2;
 
     private TextView studentNameTextView;
     private TextView idNumberTextView;
-    private TextView classNameTextView;
-    private TextView timeDisplay;
-    private ImageView profile_image;
+    private ShapeableImageView profile_image;
 
     public StudentScheduleTimeIn() {
         // Required empty public constructor
     }
 
-    public static StudentScheduleTimeIn newInstance(String className, String time) {
+    public static StudentScheduleTimeIn newInstance(String param1, String param2) {
         StudentScheduleTimeIn fragment = new StudentScheduleTimeIn();
         Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, className);
-        args.putString(ARG_PARAM2, time);
+        args.putString(ARG_PARAM1, param1);
+        args.putString(ARG_PARAM2, param2);
         fragment.setArguments(args);
         return fragment;
     }
@@ -72,33 +71,37 @@ public class StudentScheduleTimeIn extends Fragment {
         }
     }
 
-    @Nullable
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_student_schedule_timein, container, false);
-        presentButton = rootView.findViewById(R.id.timeInButton); // Changed from timeInButton
+        timeinButton = rootView.findViewById(R.id.timeInButton);
+        timeinButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                timeIn(); // Call the method to record time in
+            }
+        });
 
-        profile_image = rootView.findViewById(R.id.profile_image_faculty);
+        // Find and set OnClickListener for the back button
+        ImageButton backButton = rootView.findViewById(R.id.backButtonClass);
+        backButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Handle back button click event, for example, pop the fragment from the back stack
+                if (getActivity() != null) {
+                    getActivity().getSupportFragmentManager().popBackStack();
+                }
+            }
+        });
+
+        // Initialize views
+        profile_image = rootView.findViewById(R.id.profile_image_student);
         studentNameTextView = rootView.findViewById(R.id.studentName);
         idNumberTextView = rootView.findViewById(R.id.idNumber);
-        classNameTextView = rootView.findViewById(R.id.className);
-        timeDisplay = rootView.findViewById(R.id.timeDisplay);
 
+        // Fetch and display user information
         fetchUserInformation();
-
-        if (getArguments() != null) {
-            String className = getArguments().getString(ARG_PARAM1);
-            String time = getArguments().getString(ARG_PARAM2);
-            classNameTextView.setText(className);
-            timeDisplay.setText(time);
-        }
-
-        // Back Button
-        ImageButton backButton = rootView.findViewById(R.id.backButtonClass);
-        backButton.setOnClickListener(v -> getActivity().onBackPressed()); // Go back to the previous fragment/activity
-
-        // Time In Button Click Listener
-        presentButton.setOnClickListener(v -> timeIn());
 
         return rootView;
     }
@@ -110,7 +113,7 @@ public class StudentScheduleTimeIn extends Fragment {
 
             FirebaseFirestore db = FirebaseFirestore.getInstance();
             db.collection("users")
-                    .whereEqualTo("email", userEmail)
+                    .whereEqualTo("email", userEmail) // Assuming the field in Firestore is "email"
                     .get()
                     .addOnSuccessListener(queryDocumentSnapshots -> {
                         for (QueryDocumentSnapshot documentSnapshot : queryDocumentSnapshots) {
@@ -119,49 +122,20 @@ public class StudentScheduleTimeIn extends Fragment {
                             String idNumber = documentSnapshot.getString("idNum");
                             String imageUrl = documentSnapshot.getString("img");
 
+                            // Update UI with fetched information
                             studentNameTextView.setText(firstName + " " + lastName);
                             idNumberTextView.setText(idNumber);
 
+                            // Load the image from URL
                             new LoadImageTask(profile_image).execute(imageUrl);
                         }
                     })
-                    .addOnFailureListener(e -> Log.e(TAG, "Error fetching user document", e));
+                    .addOnFailureListener(e -> {
+                        Log.e(TAG, "Error fetching user document", e);
+                    });
         } else {
             Log.e(TAG, "User is not authenticated");
-        }
-    }
-
-    private static class LoadImageTask extends AsyncTask<String, Void, Bitmap> {
-        private WeakReference<ImageView> imageViewReference;
-
-        public LoadImageTask(ImageView imageView) {
-            imageViewReference = new WeakReference<>(imageView);
-        }
-
-        @Override
-        protected Bitmap doInBackground(String... params) {
-            String urlString = params[0];
-            try {
-                URL url = new URL(urlString);
-                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-                connection.setDoInput(true);
-                connection.connect();
-                InputStream input = connection.getInputStream();
-                return BitmapFactory.decodeStream(input);
-            } catch (IOException e) {
-                e.printStackTrace();
-                return null;
-            }
-        }
-
-        @Override
-        protected void onPostExecute(Bitmap bitmap) {
-            if (imageViewReference != null && bitmap != null) {
-                final ImageView imageView = imageViewReference.get();
-                if (imageView != null) {
-                    imageView.setImageBitmap(bitmap);
-                }
-            }
+            // Handle the case where the user is not authenticated or has signed out
         }
     }
 
@@ -174,15 +148,24 @@ public class StudentScheduleTimeIn extends Fragment {
             String message = "I'm here on time"; // Default message, you can customize this
             Date timestamp = new Date(); // Get current timestamp
 
-            AttendanceRecord attendanceRecord = new AttendanceRecord(userId, message, "On-Time", timestamp, null, className);
             FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+            // Create a map to hold the attendance data
+            Map<String, Object> attendanceRecord = new HashMap<>();
+            attendanceRecord.put("userId", userId);
+            attendanceRecord.put("message", message);
+            attendanceRecord.put("status", "On-Time");
+            attendanceRecord.put("timeIn", timestamp);
+            attendanceRecord.put("className", className);
+
+            // Use set with SetOptions.merge() to update the document if it exists or create it if it doesn't
             db.collection("attendRecord")
-                    .document(userId)
-                    .set(attendanceRecord)
+                    .document(userId + "_" + className)
+                    .set(attendanceRecord, SetOptions.merge())
                     .addOnSuccessListener(aVoid -> {
                         Log.d(TAG, "Time in recorded successfully!");
-                        // Display a message or perform any additional action upon successful time-in
-                        showTimeInPopup(); // Display the popup
+                        // Show the popup when time in is recorded successfully
+                        showPopup();
                     })
                     .addOnFailureListener(e -> {
                         Log.e(TAG, "Error recording time in", e);
@@ -194,42 +177,81 @@ public class StudentScheduleTimeIn extends Fragment {
         }
     }
 
-    private void showTimeInPopup() {
-        // Inflate the popup_timein.xml layout
+    private void showPopup() {
         View popupView = getLayoutInflater().inflate(R.layout.popup_timein, null);
 
-        // Create the popup window
-        PopupWindow popupWindow = new PopupWindow(
-                popupView,
-                ViewGroup.LayoutParams.WRAP_CONTENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-        );
+        int width = LinearLayout.LayoutParams.WRAP_CONTENT;
+        int height = LinearLayout.LayoutParams.WRAP_CONTENT;
+        boolean focusable = true;
+        PopupWindow popupWindow = new PopupWindow(popupView, width, height, focusable);
 
-        // Set an elevation for the popup window
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            popupWindow.setElevation(20);
+        View rootView = getView();
+
+        View overlay = new View(requireContext());
+        overlay.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+        overlay.setBackgroundColor(getResources().getColor(android.R.color.transparent));
+        ((ViewGroup) rootView).addView(overlay);
+
+        overlay.setClickable(true);
+        overlay.setFocusable(true);
+
+        popupWindow.showAtLocation(rootView, Gravity.CENTER, 0, 0);
+
+        AppCompatButton continueButton = popupView.findViewById(R.id.continueButton);
+        continueButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                navigateToStudentScheduleTimeout();
+
+                ((ViewGroup) rootView).removeView(overlay);
+
+                popupWindow.dismiss();
+            }
+        });
+    }
+
+    private void navigateToStudentScheduleTimeout() {
+        // Create instance of StudentScheduleTimeout fragment
+        StudentScheduleTimeout studentScheduleTimeoutFragment = StudentScheduleTimeout.newInstance(mParam1, mParam2);
+
+        // Navigate to the StudentScheduleTimeout fragment
+        FragmentTransaction transaction = getParentFragmentManager().beginTransaction();
+        transaction.replace(R.id.frame_layout, studentScheduleTimeoutFragment); // Use the correct container ID
+        transaction.addToBackStack(null);
+        transaction.commit();
+    }
+
+    private static class LoadImageTask extends AsyncTask<String, Void, Bitmap> {
+        private final WeakReference<ImageView> imageViewWeakReference;
+
+        public LoadImageTask(ImageView imageView) {
+            this.imageViewWeakReference = new WeakReference<>(imageView);
         }
 
-        // Set a background drawable for the popup window
-        popupWindow.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        @Override
+        protected Bitmap doInBackground(String... strings) {
+            String imageUrl = strings[0];
+            try {
+                URL url = new URL(imageUrl);
+                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                connection.setDoInput(true);
+                connection.connect();
+                InputStream input = connection.getInputStream();
+                return BitmapFactory.decodeStream(input);
+            } catch (IOException e) {
+                Log.e(TAG, "Error loading image from URL", e);
+                return null;
+            }
+        }
 
-        // Set a focusable property to make the popup window focusable
-        popupWindow.setFocusable(true);
-
-        // Show the popup window
-        popupWindow.showAtLocation(popupView, Gravity.CENTER, 0, 0);
-
-        // Handle the "Continue" button click
-        AppCompatButton continueButton = popupView.findViewById(R.id.continueButton);
-        continueButton.setOnClickListener(v -> {
-            popupWindow.dismiss(); // Dismiss the popup
-
-            // Navigate to the StudentScheduleTimeout fragment
-            Fragment timeoutFragment = StudentScheduleTimeout.newInstance(mParam1, mParam2);
-            getActivity().getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.frame_layout, timeoutFragment)
-                    .addToBackStack(null)
-                    .commit();
-        });
+        @Override
+        protected void onPostExecute(Bitmap bitmap) {
+            if (imageViewWeakReference != null && bitmap != null) {
+                ImageView imageView = imageViewWeakReference.get();
+                if (imageView != null) {
+                    imageView.setImageBitmap(bitmap);
+                }
+            }
+        }
     }
 }
