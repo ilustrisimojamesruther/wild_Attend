@@ -4,11 +4,6 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.os.Bundle;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
-
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -17,6 +12,10 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
 
 import com.google.android.material.textview.MaterialTextView;
 import com.google.firebase.auth.FirebaseAuth;
@@ -29,6 +28,7 @@ import java.io.InputStream;
 import java.lang.ref.WeakReference;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
@@ -135,10 +135,12 @@ public class FacultyHome extends Fragment {
                         String classCode = documentSnapshot.getString("classCode");
                         String classDesc = documentSnapshot.getString("classDesc");
                         String startTime = documentSnapshot.getString("startTime");
+                        String formattedStartTime = formatTime(startTime); // Format the start time
                         String endTime = documentSnapshot.getString("endTime");
+                        String formattedEndTime = formatTime(endTime); // Format the end time
 
                         // Update UI with class details
-                        upcomingTimeTextView.setText(startTime + " - " + endTime);
+                        upcomingTimeTextView.setText(formattedStartTime + " - " + formattedEndTime);
                         upcomingCourseTextView.setText(classCode);
                         courseView.setText(classCode.substring(0, 3)); // Assuming courseView displays a short code
                     } else {
@@ -148,6 +150,18 @@ public class FacultyHome extends Fragment {
                 .addOnFailureListener(e -> {
                     Log.e(TAG, "Error fetching class details", e);
                 });
+    }
+
+    private String formatTime(String time) {
+        try {
+            SimpleDateFormat inputFormat = new SimpleDateFormat("HH:mm");
+            SimpleDateFormat outputFormat = new SimpleDateFormat("h:mm a", Locale.getDefault());
+            Date date = inputFormat.parse(time);
+            return outputFormat.format(date);
+        } catch (ParseException e) {
+            Log.e(TAG, "Error formatting time", e);
+            return time; // Return original time in case of error
+        }
     }
 
 
