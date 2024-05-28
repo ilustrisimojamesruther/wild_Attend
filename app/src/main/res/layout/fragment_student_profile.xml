@@ -134,7 +134,7 @@
         app:layout_constraintTop_toBottomOf="@+id/department" />
 
     <Button
-        android:id="@+id/studentoverallattendance"
+        android:id="@+id/facultyoverallattendance"
         android:layout_width="250dp"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
@@ -147,7 +147,7 @@
         app:layout_constraintTop_toBottomOf="@+id/changepassword" />
 
     <Button
-        android:id="@+id/logout"
+        android:id="@+id/facultyExport"
         android:layout_width="250dp"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
@@ -158,7 +158,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.496"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/studentoverallattendance"
+        app:layout_constraintTop_toBottomOf="@+id/facultyoverallattendance"
         app:layout_constraintVertical_bias="0.333" />
 
 

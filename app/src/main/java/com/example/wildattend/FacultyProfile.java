@@ -6,13 +6,6 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.os.Bundle;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AlertDialog;
-import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentTransaction;
-
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -20,6 +13,12 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentTransaction;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -65,13 +64,15 @@ public class FacultyProfile extends Fragment {
         departmentTextView = view.findViewById(R.id.department);
         emailTextView = view.findViewById(R.id.email);
 
-        Button logoutButton = view.findViewById(R.id.logout);
+        Button logoutButton = view.findViewById(R.id.facultyExport);
         Button changePasswordButton = view.findViewById(R.id.changepassword);
+        Button overallAttendanceButton = view.findViewById(R.id.facultyoverallattendance);
 
         logoutButton.setOnClickListener(v -> showLogoutConfirmationDialog());
 
-        // Set OnClickListener for change password button
         changePasswordButton.setOnClickListener(v -> navigateToChangePassword());
+
+        overallAttendanceButton.setOnClickListener(v -> navigateToOverallAttendance());
 
         fetchUserInformation();
     }
@@ -99,7 +100,7 @@ public class FacultyProfile extends Fragment {
                             departmentTextView.setText(department);
                             emailTextView.setText(email);
 
-                            new FacultyProfile.LoadImageTask(profileImageView).execute(imageUrl);
+                            new LoadImageTask(profileImageView).execute(imageUrl);
                         }
                     })
                     .addOnFailureListener(e -> {
@@ -170,12 +171,17 @@ public class FacultyProfile extends Fragment {
     }
 
     private void navigateToChangePassword() {
-        // Create instance of StudentChangePassword fragment
         FacultyChangePassword changePasswordFragment = new FacultyChangePassword();
-
-        // Navigate to the StudentChangePassword fragment
         FragmentTransaction transaction = getParentFragmentManager().beginTransaction();
         transaction.replace(R.id.faculty_frame_layout, changePasswordFragment);
+        transaction.addToBackStack(null);
+        transaction.commit();
+    }
+
+    private void navigateToOverallAttendance() {
+        FacultyOverAllAttendance facultyOverAllAttendance = new FacultyOverAllAttendance();
+        FragmentTransaction transaction = getParentFragmentManager().beginTransaction();
+        transaction.replace(R.id.faculty_frame_layout, facultyOverAllAttendance);
         transaction.addToBackStack(null);
         transaction.commit();
     }

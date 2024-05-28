@@ -20,7 +20,6 @@ import androidx.fragment.app.FragmentTransaction;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.SetOptions;
@@ -84,7 +83,7 @@ public class StudentScheduleTimeout extends Fragment {
 
         // Initialize views
         profile_image = rootView.findViewById(R.id.profile_image_student);
-        studentNameTextView = rootView.findViewById(R.id.studentName);
+        studentNameTextView = rootView.findViewById(R.id.facultyName);
         idNumberTextView = rootView.findViewById(R.id.idNumber);
 
         // Fetch and display user information

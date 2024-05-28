@@ -13,13 +13,12 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
-import androidx.fragment.app.FragmentTransaction;
-
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentTransaction;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -65,13 +64,17 @@ public class StudentProfile extends Fragment {
         departmentTextView = view.findViewById(R.id.department);
         emailTextView = view.findViewById(R.id.email);
 
-        Button logoutButton = view.findViewById(R.id.logout);
+        Button logoutButton = view.findViewById(R.id.facultyExport);
         Button changePasswordButton = view.findViewById(R.id.changepassword);
+        Button studentOverallAttendanceButton = view.findViewById(R.id.facultyoverallattendance);
 
         logoutButton.setOnClickListener(v -> showLogoutConfirmationDialog());
 
         // Set OnClickListener for change password button
         changePasswordButton.setOnClickListener(v -> navigateToChangePassword());
+
+        // Set OnClickListener for student overall attendance button
+        studentOverallAttendanceButton.setOnClickListener(v -> navigateToStudentOverallAttendance());
 
         fetchUserInformation();
     }
@@ -176,6 +179,17 @@ public class StudentProfile extends Fragment {
         // Navigate to the StudentChangePassword fragment
         FragmentTransaction transaction = getParentFragmentManager().beginTransaction();
         transaction.replace(R.id.frame_layout, changePasswordFragment);
+        transaction.addToBackStack(null);
+        transaction.commit();
+    }
+
+    private void navigateToStudentOverallAttendance() {
+        // Create instance of StudentOverAllAttendance fragment
+        StudentOverAllAttendance overallAttendanceFragment = new StudentOverAllAttendance();
+
+        // Navigate to the StudentOverAllAttendance fragment
+        FragmentTransaction transaction = getParentFragmentManager().beginTransaction();
+        transaction.replace(R.id.frame_layout, overallAttendanceFragment);
         transaction.addToBackStack(null);
         transaction.commit();
     }

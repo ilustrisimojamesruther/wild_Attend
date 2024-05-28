@@ -97,7 +97,7 @@ public class StudentScheduleTimeIn extends Fragment {
 
         // Initialize views
         profile_image = rootView.findViewById(R.id.profile_image_student);
-        studentNameTextView = rootView.findViewById(R.id.studentName);
+        studentNameTextView = rootView.findViewById(R.id.facultyName);
         idNumberTextView = rootView.findViewById(R.id.idNumber);
 
         // Fetch and display user information

@@ -53,7 +53,7 @@ public class StudentChangePassword extends Fragment {
         reEnterNewPasswordEditText = view.findViewById(R.id.ReEnterNewPassword);
         updatePasswordButton = view.findViewById(R.id.updatePassword);
         profileImageView = view.findViewById(R.id.sample_image);
-        studentNameTextView = view.findViewById(R.id.studentName);
+        studentNameTextView = view.findViewById(R.id.facultyName);
 
         // Set OnClickListener for the back button
         ImageButton backButton = view.findViewById(R.id.backButtonChangePassword);

@@ -8,7 +8,6 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -27,6 +26,7 @@ import java.io.InputStream;
 import java.lang.ref.WeakReference;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -187,11 +187,12 @@ public class StudentHome extends Fragment {
                         String classCode = documentSnapshot.getString("classCode");
                         String classDesc = documentSnapshot.getString("classDesc");
                         String startTime = documentSnapshot.getString("startTime");
+                        String formattedStartTime = formatTime(startTime); // Format the start time
                         String endTime = documentSnapshot.getString("endTime");
 
                         Log.d(TAG, "Class Name: " + classDesc);
 
-                        ClassItem item = new ClassItem(classCode, classDesc, startTime, endTime);
+                        ClassItem item = new ClassItem(classCode, classDesc, formattedStartTime, endTime);
                         scheduleItems.add(item);
                         adapter.notifyDataSetChanged();
                     } else {
@@ -201,6 +202,18 @@ public class StudentHome extends Fragment {
                 .addOnFailureListener(e -> {
                     Log.e(TAG, "Error fetching class details", e);
                 });
+    }
+
+    private String formatTime(String time) {
+        try {
+            SimpleDateFormat inputFormat = new SimpleDateFormat("HH:mm");
+            SimpleDateFormat outputFormat = new SimpleDateFormat("h:mm a");
+            Date date = inputFormat.parse(time);
+            return outputFormat.format(date);
+        } catch (ParseException e) {
+            Log.e(TAG, "Error formatting time", e);
+            return time; // Return original time in case of error
+        }
     }
 
     private void navigateToClassSchedule(String classCode) {

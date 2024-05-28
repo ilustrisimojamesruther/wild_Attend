@@ -1,8 +1,6 @@
 package com.example.wildattend;
 
-import android.annotation.SuppressLint;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -23,24 +21,21 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 
-public class StudentOverAllAttendance extends Fragment {
-
+public class FacultyOverAllAttendance extends Fragment {
     private ListView listView;
     private ArrayAdapter<String> adapter;
 
-    public static StudentOverAllAttendance newInstance(String param1, String param2) {
-        StudentOverAllAttendance fragment = new StudentOverAllAttendance();
-        Bundle args = new Bundle();
-        args.putString("PARAM_1_KEY", param1);
-        args.putString("PARAM_2_KEY", param2);
-        fragment.setArguments(args);
-        return fragment;
+    public FacultyOverAllAttendance() {
+        // Required empty public constructor
     }
 
-    @SuppressLint("MissingInflatedId")
+    public static FacultyOverAllAttendance newInstance() {
+        return new FacultyOverAllAttendance();
+    }
+
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View rootView = inflater.inflate(R.layout.fragment_student_overallattendance, container, false);
+        View rootView = inflater.inflate(R.layout.fragment_faculty_over_all_attendance, container, false);
         listView = rootView.findViewById(R.id.list_view_attendance);
         rootView.findViewById(R.id.backButtonChangePassword).setOnClickListener(v -> requireActivity().onBackPressed()); // Handle back button click
         setupListView();
@@ -50,11 +45,13 @@ public class StudentOverAllAttendance extends Fragment {
     private void setupListView() {
         String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         FirebaseFirestore db = FirebaseFirestore.getInstance();
+
         db.collection("attendRecord")
                 .whereEqualTo("userId", userId)
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
                     List<String> attendanceItems = new ArrayList<>();
+
                     for (QueryDocumentSnapshot documentSnapshot : queryDocumentSnapshots) {
                         String className = documentSnapshot.getString("className");
                         Timestamp timeInTimestamp = documentSnapshot.getTimestamp("timeIn");
@@ -63,19 +60,22 @@ public class StudentOverAllAttendance extends Fragment {
                         String timeOut = formatTimestamp(timeOutTimestamp);
                         String message = documentSnapshot.getString("message");
                         String status = documentSnapshot.getString("status");
+
                         String attendanceEntry = "Class: " + className + "\n"
                                 + "Time In: " + timeIn + "\n"
                                 + "Time Out: " + timeOut + "\n"
                                 + "Message: " + message + "\n"
                                 + "Status: " + status;
+
                         attendanceItems.add(attendanceEntry);
                     }
+
                     adapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_list_item_1, attendanceItems);
                     listView.setAdapter(adapter);
                 })
                 .addOnFailureListener(e -> {
                     Toast.makeText(requireContext(), "Failed to fetch attendance data", Toast.LENGTH_SHORT).show();
-                    Log.e("StudentOverAllAttendance", "Error fetching attendance data", e);
+                    e.printStackTrace();
                 });
     }
 

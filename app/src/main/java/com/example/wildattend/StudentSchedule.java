@@ -28,6 +28,11 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+
 
 public class StudentSchedule extends Fragment {
 
@@ -45,7 +50,7 @@ public class StudentSchedule extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_student_schedule, container, false);
 
-        studentNameTextView = rootView.findViewById(R.id.studentName);
+        studentNameTextView = rootView.findViewById(R.id.facultyName);
         idNumberTextView = rootView.findViewById(R.id.idNumber);
         listView = rootView.findViewById(R.id.list_view_schedule);
         profile_image = rootView.findViewById(R.id.profile_image_faculty);
@@ -118,11 +123,10 @@ public class StudentSchedule extends Fragment {
                         String classCode = documentSnapshot.getString("classCode");
                         String classDesc = documentSnapshot.getString("classDesc");
                         String startTime = documentSnapshot.getString("startTime");
+                        String formattedStartTime = formatTime(startTime); // Format the start time
                         String endTime = documentSnapshot.getString("endTime");
 
-                        Log.d(TAG, "Class Name: " + classDesc);
-
-                        ClassItem item = new ClassItem(classCode, classDesc, startTime, endTime);
+                        ClassItem item = new ClassItem(classCode, classDesc, formattedStartTime, endTime);
                         scheduleItems.add(item);
                         adapter.notifyDataSetChanged();
                     } else {
@@ -133,6 +137,20 @@ public class StudentSchedule extends Fragment {
                     Log.e(TAG, "Error fetching class details", e);
                 });
     }
+
+    // Method to format time to "7:30 am" format
+    private String formatTime(String time) {
+        try {
+            SimpleDateFormat inputFormat = new SimpleDateFormat("HH:mm");
+            SimpleDateFormat outputFormat = new SimpleDateFormat("h:mm a");
+            Date date = inputFormat.parse(time);
+            return outputFormat.format(date);
+        } catch (ParseException e) {
+            Log.e(TAG, "Error formatting time", e);
+            return time; // Return original time in case of error
+        }
+    }
+
 
     private void setupListView() {
         listView.setOnItemClickListener((parent, view, position, id) -> {
