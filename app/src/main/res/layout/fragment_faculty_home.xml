@@ -221,7 +221,7 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
 
-            <!-- Upcoming CLass Value TextView -->
+            <!-- Upcoming Class Time TextView -->
             <TextView
                 android:id="@+id/upcomingValue"
                 android:layout_width="wrap_content"
@@ -234,11 +234,11 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/upcomingClassText"/>
 
-            <!-- Course -->
+            <!-- Course View -->
             <com.google.android.material.textview.MaterialTextView
                 android:id="@+id/courseView"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
+                android:layout_width="55dp"
+                android:layout_height="55dp"
                 android:layout_gravity="center_horizontal"
                 android:background="@drawable/circle_background"
                 android:gravity="center"
@@ -275,9 +275,8 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="parent"/>
         </androidx.constraintlayout.widget.ConstraintLayout>
-
-
     </FrameLayout>
+
 
     <!-- Fourth FrameLayout (bottom-right) -->
     <FrameLayout

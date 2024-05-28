@@ -1,12 +1,17 @@
 package com.example.wildattend;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -17,42 +22,135 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.lang.ref.WeakReference;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 public class StudentHome extends Fragment {
 
     private static final String TAG = "StudentHome";
 
     private ListView listView;
-    private ArrayAdapter<String> adapter;
+
+    private TextView studentNameTextView;
+    private ImageView profile_image;
+    private List<ClassItem> scheduleItems;
+    private ClassItemAdapter adapter;
+
+    private TextView classesValue;
+
+    private int totalClasses = 0; // Variable to hold the total number of classes
+
+    public StudentHome() {
+        // Required empty public constructor
+    }
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_student_home, container, false);
+        studentNameTextView = rootView.findViewById(R.id.student_header);
+        profile_image = rootView.findViewById(R.id.profile_image_student);
         listView = rootView.findViewById(R.id.list_view_schedule);
+        classesValue = rootView.findViewById(R.id.classesValue);
+
+        scheduleItems = new ArrayList<>();
+        adapter = new ClassItemAdapter(requireContext(), scheduleItems, R.layout.list_next_class);
+        listView.setAdapter(adapter);
+
+        // Set the current date
+        TextView dateTextView = rootView.findViewById(R.id.date);
+        String currentDate = new SimpleDateFormat("dd MMMM yyyy", Locale.getDefault()).format(new Date());
+        dateTextView.setText(currentDate);
+
+        // Fetch and display user information
+        fetchUserInformation();
+
         setupListView();
         fetchUserClasses();
         return rootView;
     }
 
+    private void fetchUserInformation() {
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser != null) {
+            String userEmail = currentUser.getEmail();
+
+            FirebaseFirestore db = FirebaseFirestore.getInstance();
+            db.collection("users")
+                    .whereEqualTo("email", userEmail) // Assuming the field in Firestore is "email"
+                    .get()
+                    .addOnSuccessListener(queryDocumentSnapshots -> {
+                        for (QueryDocumentSnapshot documentSnapshot : queryDocumentSnapshots) {
+                            String firstName = documentSnapshot.getString("firstName");
+                            String lastName = documentSnapshot.getString("lastName");
+                            String imageUrl = documentSnapshot.getString("img");
+
+                            // Update UI with fetched information
+                            studentNameTextView.setText("Hi," + " " + firstName + "!");
+
+                            // Load the image from URL
+                            new StudentHome.LoadImageTask(profile_image).execute(imageUrl);
+                        }
+                    })
+                    .addOnFailureListener(e -> {
+                        Log.e(TAG, "Error fetching user document", e);
+                    });
+        } else {
+            Log.e(TAG, "User is not authenticated");
+            // Handle the case where the user is not authenticated or has signed out
+        }
+    }
+
     private void setupListView() {
-        List<String> scheduleItems = new ArrayList<>();
-        adapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_list_item_1, scheduleItems);
-        listView.setAdapter(adapter);
-
-        // Set item click listener to navigate to class schedule
         listView.setOnItemClickListener((parent, view, position, id) -> {
-            String selectedItem = adapter.getItem(position);
+            ClassItem selectedItem = (ClassItem) parent.getItemAtPosition(position);
             if (selectedItem != null) {
-                // Extract class code from the selected item
-                String classCode = selectedItem.split(" - ")[0];
-
                 // Navigate to the detailed schedule of the selected class
-                navigateToClassSchedule(classCode);
+                navigateToClassSchedule(selectedItem.getClassCode());
             }
         });
+    }
+
+    private static class LoadImageTask extends AsyncTask<String, Void, Bitmap> {
+        private final WeakReference<ImageView> imageViewWeakReference;
+
+        public LoadImageTask(ImageView imageView) {
+            this.imageViewWeakReference = new WeakReference<>(imageView);
+        }
+
+        @Override
+        protected Bitmap doInBackground(String... strings) {
+            String imageUrl = strings[0];
+            try {
+                URL url = new URL(imageUrl);
+                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                connection.setDoInput(true);
+                connection.connect();
+                InputStream input = connection.getInputStream();
+                return BitmapFactory.decodeStream(input);
+            } catch (IOException e) {
+                Log.e(TAG, "Error loading image from URL", e);
+                return null;
+            }
+        }
+
+        @Override
+        protected void onPostExecute(Bitmap bitmap) {
+            if (imageViewWeakReference != null && bitmap != null) {
+                ImageView imageView = imageViewWeakReference.get();
+                if (imageView != null) {
+                    imageView.setImageBitmap(bitmap);
+                }
+            }
+        }
     }
 
     private void fetchUserClasses() {
@@ -64,6 +162,8 @@ public class StudentHome extends Fragment {
                     .whereEqualTo("userID", userId)
                     .get()
                     .addOnSuccessListener(queryDocumentSnapshots -> {
+                        totalClasses = queryDocumentSnapshots.size(); // Update total classes count
+                        classesValue.setText(String.valueOf(totalClasses));
                         for (QueryDocumentSnapshot documentSnapshot : queryDocumentSnapshots) {
                             String classID = documentSnapshot.getString("classID");
                             fetchClassDetails(classID);
@@ -89,7 +189,11 @@ public class StudentHome extends Fragment {
                         String startTime = documentSnapshot.getString("startTime");
                         String endTime = documentSnapshot.getString("endTime");
 
-                        adapter.add(classCode + " - " + classDesc + " (" + startTime + " - " + endTime + ")");
+                        Log.d(TAG, "Class Name: " + classDesc);
+
+                        ClassItem item = new ClassItem(classCode, classDesc, startTime, endTime);
+                        scheduleItems.add(item);
+                        adapter.notifyDataSetChanged();
                     } else {
                         Log.e(TAG, "Class document does not exist");
                     }

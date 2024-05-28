@@ -18,6 +18,7 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.google.android.material.textview.MaterialTextView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -34,6 +35,10 @@ import java.util.Locale;
 
 public class FacultyHome extends Fragment {
 
+    private TextView upcomingTimeTextView;
+    private TextView upcomingCourseTextView;
+    private MaterialTextView courseView;
+
     private ListView attendanceLogListView;
     private static final String TAG = "FacultyHome";
     private TextView facultyNameTextView;
@@ -49,6 +54,9 @@ public class FacultyHome extends Fragment {
         View rootView = inflater.inflate(R.layout.fragment_faculty_home, container, false);
 
         // Initialize the views
+        upcomingTimeTextView = rootView.findViewById(R.id.upcomingValue);
+        upcomingCourseTextView = rootView.findViewById(R.id.courseText);
+        courseView = rootView.findViewById(R.id.courseView);
         facultyNameTextView = rootView.findViewById(R.id.home_header);
         profile_image = rootView.findViewById(R.id.profile_image_faculty);
         attendanceLogListView = rootView.findViewById(R.id.attendanceLogListView);
@@ -74,7 +82,7 @@ public class FacultyHome extends Fragment {
 
             FirebaseFirestore db = FirebaseFirestore.getInstance();
             db.collection("users")
-                    .whereEqualTo("email", userEmail) // Assuming the field in Firestore is "email"
+                    .whereEqualTo("email", userEmail)
                     .get()
                     .addOnSuccessListener(queryDocumentSnapshots -> {
                         for (QueryDocumentSnapshot documentSnapshot : queryDocumentSnapshots) {
@@ -87,6 +95,9 @@ public class FacultyHome extends Fragment {
 
                             // Load the image from URL
                             new LoadImageTask(profile_image).execute(imageUrl);
+
+                            // Fetch classes
+                            fetchUserClasses(currentUser.getUid());
                         }
                     })
                     .addOnFailureListener(e -> {
@@ -94,9 +105,51 @@ public class FacultyHome extends Fragment {
                     });
         } else {
             Log.e(TAG, "User is not authenticated");
-            // Handle the case where the user is not authenticated or has signed out
         }
     }
+
+
+    private void fetchUserClasses(String userId) {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        db.collection("userClasses")
+                .whereEqualTo("userID", userId)
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    for (QueryDocumentSnapshot documentSnapshot : queryDocumentSnapshots) {
+                        String classID = documentSnapshot.getString("classID");
+                        fetchClassDetails(classID);
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error fetching user classes", e);
+                });
+    }
+
+    private void fetchClassDetails(String classID) {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        db.collection("classes")
+                .document(classID)
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        String classCode = documentSnapshot.getString("classCode");
+                        String classDesc = documentSnapshot.getString("classDesc");
+                        String startTime = documentSnapshot.getString("startTime");
+                        String endTime = documentSnapshot.getString("endTime");
+
+                        // Update UI with class details
+                        upcomingTimeTextView.setText(startTime + " - " + endTime);
+                        upcomingCourseTextView.setText(classCode);
+                        courseView.setText(classCode.substring(0, 3)); // Assuming courseView displays a short code
+                    } else {
+                        Log.e(TAG, "Class document does not exist");
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error fetching class details", e);
+                });
+    }
+
 
     private void setupListView(LayoutInflater inflater) {
         // Sample data for the ListView

@@ -37,8 +37,9 @@ public class FacultySchedule extends Fragment {
     private TextView facultyNameTextView;
     private TextView idNumberTextView;
     private ListView listView;
-    private ArrayAdapter<String> adapter;
     private ImageView profile_image;
+    private List<ClassItem> scheduleItems;
+    private ClassItemAdapter adapter;
 
     @Nullable
     @Override
@@ -49,6 +50,10 @@ public class FacultySchedule extends Fragment {
         idNumberTextView = rootView.findViewById(R.id.idNumber);
         listView = rootView.findViewById(R.id.list_view_schedule);
         profile_image = rootView.findViewById(R.id.profile_image_faculty);
+
+        scheduleItems = new ArrayList<>();
+        adapter = new ClassItemAdapter(requireContext(), scheduleItems, R.layout.list_class_schedule);
+        listView.setAdapter(adapter);
 
         fetchUserInformation();
         setupListView();
@@ -116,7 +121,11 @@ public class FacultySchedule extends Fragment {
                         String startTime = documentSnapshot.getString("startTime");
                         String endTime = documentSnapshot.getString("endTime");
 
-                        adapter.add(classCode + " - " + classDesc + " (" + startTime + " - " + endTime + ")");
+                        Log.d(TAG, "Class Name: " + classDesc);
+
+                        ClassItem item = new ClassItem(classCode, classDesc, startTime, endTime);
+                        scheduleItems.add(item);
+                        adapter.notifyDataSetChanged();
                     } else {
                         Log.e(TAG, "Class document does not exist");
                     }
@@ -126,23 +135,20 @@ public class FacultySchedule extends Fragment {
                 });
     }
 
+
     private void setupListView() {
-        List<String> scheduleItems = new ArrayList<>();
-        adapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_list_item_1, scheduleItems);
         listView.setAdapter(adapter);
 
         // Set item click listener to navigate to class schedule
         listView.setOnItemClickListener((parent, view, position, id) -> {
-            String selectedItem = adapter.getItem(position);
+            ClassItem selectedItem = (ClassItem) parent.getItemAtPosition(position);
             if (selectedItem != null) {
-                // Extract class code from the selected item
-                String classCode = selectedItem.split(" - ")[0];
-
                 // Navigate to the detailed schedule of the selected class
-                navigateToClassSchedule(classCode);
+                navigateToClassSchedule(selectedItem.getClassCode());
             }
         });
     }
+
 
     private void navigateToClassSchedule(String classCode) {
         // Create instance of FacultyScheduleTimeIn fragment and pass class code as argument

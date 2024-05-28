@@ -6,113 +6,317 @@
     android:layout_height="match_parent"
     tools:context=".StudentHome">
 
-    <TextView
-        android:id="@+id/classesTextView"
-        android:layout_width="wrap_content"
+    <FrameLayout
+        android:id="@+id/topFrameLayout"
+        android:layout_width="0dp"
+        android:layout_height="150dp"
+        android:background="@drawable/gradient_background_v2"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <!-- Header -->
+        <TextView
+            android:id="@+id/student_header"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/white"
+            android:textSize="24sp"
+            android:layout_gravity="start|top"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="60dp" />
+
+        <!-- Date -->
+        <TextView
+            android:id="@+id/date"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="DD/MM/YY"
+            android:textColor="@color/white"
+            android:textSize="16sp"
+            android:layout_gravity="start|top"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="100dp" />
+
+        <!-- Profile Picture -->
+        <ImageView
+            android:id="@+id/profile_image_student"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:scaleType="centerCrop"
+            android:layout_gravity="end|top"
+            android:layout_marginEnd="16dp"
+            android:layout_marginTop="40dp"
+            app:shapeAppearanceOverlay="@style/circleImageView" />
+    </FrameLayout>
+
+    <!-- First FrameLayout (top-left) -->
+    <FrameLayout
+        android:id="@+id/frame1"
+        android:layout_width="190dp"
+        android:layout_height="80dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginStart="16dp"
+        android:background="@drawable/border_background_v2"
+        app:layout_constraintTop_toBottomOf="@id/topFrameLayout"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <ImageView
+            android:id="@+id/icon_on_time"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:layout_gravity="start|center"
+            android:src="@drawable/image2"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/onTimeText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="10dp"
+            android:layout_gravity="end"
+            android:text="On Time"
+            android:textColor="@color/black"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:layout_marginTop="5dp"
+            android:layout_marginRight="20dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/onTimeValue"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="10dp"
+            android:layout_marginTop="25dp"
+            android:layout_marginRight="35dp"
+            android:layout_gravity="end"
+            android:text="-"
+            android:textColor="@color/black"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            app:layout_constraintTop_toBottomOf="@id/timeInText"
+            app:layout_constraintStart_toStartOf="parent" />
+
+    </FrameLayout>
+
+
+    <!-- Second FrameLayout (top-right) -->
+    <FrameLayout
+        android:id="@+id/frame2"
+        android:layout_width="190dp"
+        android:layout_height="80dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
+        android:background="@drawable/border_background_v2"
+        app:layout_constraintTop_toBottomOf="@id/topFrameLayout"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <ImageView
+            android:id="@+id/icon_late"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:layout_gravity="start|center"
+            android:src="@drawable/image3"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/lateText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="10dp"
+            android:layout_gravity="end"
+            android:text="Lates"
+            android:textColor="@color/black"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:layout_marginTop="5dp"
+            android:layout_marginRight="30dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/lateValue"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="10dp"
+            android:layout_marginTop="25dp"
+            android:layout_marginRight="35dp"
+            android:layout_gravity="end"
+            android:text="-"
+            android:textColor="@color/black"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            app:layout_constraintTop_toBottomOf="@id/timeInText"
+            app:layout_constraintStart_toStartOf="parent" />
+
+    </FrameLayout>
+
+    <FrameLayout
+        android:id="@+id/bigFrame"
+        android:layout_width="380dp"
+        android:layout_height="120dp"
+        android:layout_marginStart="16dp"
+        android:background="@drawable/border_background_v2"
+        app:layout_constraintTop_toBottomOf="@id/frame1"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="asd"/>
+    </FrameLayout>
+
+    <!-- Third FrameLayout (bottom-left) -->
+    <FrameLayout
+        android:id="@+id/frame3"
+        android:layout_width="190dp"
+        android:layout_height="80dp"
+        android:layout_marginStart="16dp"
+        android:background="@drawable/border_background_v2"
+        app:layout_constraintTop_toBottomOf="@id/bigFrame"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <ImageView
+            android:id="@+id/icon_classes"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:layout_gravity="start|center"
+            android:src="@drawable/image4"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/classesText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="10dp"
+            android:layout_gravity="end"
+            android:text="Classes"
+            android:textColor="@color/black"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:layout_marginTop="5dp"
+            android:layout_marginRight="20dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/classesValue"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="10dp"
+            android:layout_marginTop="25dp"
+            android:layout_marginRight="35dp"
+            android:layout_gravity="end"
+            android:text="-"
+            android:textColor="@color/black"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            app:layout_constraintTop_toBottomOf="@id/timeInText"
+            app:layout_constraintStart_toStartOf="parent" />
+
+    </FrameLayout>
+
+
+    <!-- Fourth FrameLayout (bottom-right) -->
+    <FrameLayout
+        android:id="@+id/frame4"
+        android:layout_width="190dp"
+        android:layout_height="80dp"
+        android:layout_marginEnd="16dp"
+        android:background="@drawable/border_background_v2"
+        app:layout_constraintTop_toBottomOf="@id/bigFrame"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <ImageView
+            android:id="@+id/icon_total_hours"
+            android:layout_width="55dp"
+            android:layout_height="55dp"
+            android:layout_gravity="start|center"
+            android:layout_marginLeft="15dp"
+            android:src="@drawable/image5"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/total_hours_Text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="10dp"
+            android:layout_gravity="end"
+            android:text="Total Hours"
+            android:textColor="@color/black"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:layout_marginTop="5dp"
+            android:layout_marginRight="10dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/totalHoursValue"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="10dp"
+            android:layout_marginTop="25dp"
+            android:layout_marginRight="40dp"
+            android:layout_gravity="end"
+            android:text="-"
+            android:textColor="@color/black"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            app:layout_constraintTop_toBottomOf="@id/timeInText"
+            app:layout_constraintStart_toStartOf="parent" />
+    </FrameLayout>
+
+    <!-- Container for ListView with Header -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/list_view_container"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="Today's Classes"
-        android:textSize="18sp"
-        android:textStyle="bold"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.498"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/scrollView2" />
-
-    <TextView
-        android:id="@+id/onTime"
-        android:layout_width="180dp"
-        android:layout_height="63dp"
+        android:layout_marginTop="16dp"
         android:layout_marginStart="16dp"
-        android:layout_marginTop="24dp"
-        android:layout_marginEnd="8dp"
-        android:background="@drawable/rounded_corner"
-        android:drawableLeft="@drawable/image2"
-        android:padding="16dp"
-        android:text="On Time"
-        android:textAlignment="center"
-        android:textColor="@android:color/black"
-        android:textSize="12sp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <TextView
-        android:id="@+id/late"
-        android:layout_width="180dp"
-        android:layout_height="63dp"
-        android:layout_marginTop="24dp"
         android:layout_marginEnd="16dp"
-        android:background="@drawable/rounded_corner"
-        android:drawableLeft="@drawable/image3"
-        android:padding="16dp"
-        android:text="Late"
-        android:textAlignment="center"
-        android:textColor="@android:color/black"
-        android:textSize="12sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <TextView
-        android:id="@+id/hours"
-        android:layout_width="180dp"
-        android:layout_height="63dp"
-        android:layout_marginTop="24dp"
-        android:layout_marginEnd="16dp"
-        android:background="@drawable/rounded_corner"
-        android:drawableLeft="@drawable/image5"
-        android:padding="16dp"
-        android:text="Total hours"
-        android:textAlignment="center"
-        android:textColor="@android:color/black"
-        android:textSize="12sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/late" />
-
-    <TextView
-        android:id="@+id/classes"
-        android:layout_width="180dp"
-        android:layout_height="63dp"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="24dp"
-        android:background="@drawable/rounded_corner"
-        android:drawableLeft="@drawable/image4"
-        android:padding="16dp"
-        android:text="Classes"
-        android:textAlignment="center"
-        android:textColor="@android:color/black"
-        android:textSize="12sp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/onTime" />
-
-    <ScrollView
-        android:id="@+id/scrollView2"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_marginTop="24dp"
-        app:layout_constraintBottom_toTopOf="@+id/classesTextView"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/hours">
-
-        <CalendarView
-            android:id="@+id/calendarView"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
-
-    </ScrollView>
-
-    <ListView
-        android:id="@+id/list_view_schedule"
-        android:layout_width="0dp"
-        android:layout_height="180dp"
         android:layout_marginBottom="24dp"
-        android:divider="@android:color/transparent"
-        android:dividerHeight="24sp"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/classesTextView"
-        app:layout_constraintVertical_bias="1.0"
-        tools:listitem="@layout/list_class_schedule" />
+        app:layout_constraintTop_toBottomOf="@+id/frame4">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/cardview_border">
+
+            <!-- Header -->
+            <TextView
+                android:id="@+id/header_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerHorizontal="true"
+                android:text="Next Class"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="@android:color/black"
+                android:layout_marginTop="10dp"
+                android:gravity="center" />
+
+            <!-- ListView -->
+            <ListView
+                android:id="@+id/list_view_schedule"
+                android:layout_width="match_parent"
+                android:layout_height="200dp"
+                android:padding="20dp"
+                android:layout_below="@id/header_text"
+                android:divider="@android:color/transparent"
+                android:dividerHeight="15sp"
+                tools:listitem="@layout/list_next_class" />
+
+        </RelativeLayout>
+
+    </androidx.cardview.widget.CardView>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
