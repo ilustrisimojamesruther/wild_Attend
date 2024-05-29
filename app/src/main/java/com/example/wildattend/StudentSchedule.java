@@ -54,7 +54,7 @@ public class StudentSchedule extends Fragment {
         profile_image = rootView.findViewById(R.id.profile_image_faculty);
 
         scheduleItems = new ArrayList<>();
-        adapter = new ClassItemAdapter(requireContext(), scheduleItems, R.layout.list_class_schedule);
+        adapter = new ClassItemAdapter(requireContext(), scheduleItems, R.layout.list_class_schedule, true);
         listView.setAdapter(adapter);
 
         fetchUserInformation();
@@ -123,8 +123,9 @@ public class StudentSchedule extends Fragment {
                         String startTime = documentSnapshot.getString("startTime");
                         String formattedStartTime = formatTime(startTime); // Format the start time
                         String endTime = documentSnapshot.getString("endTime");
+                        String classColor = documentSnapshot.getString("classColor");
 
-                        ClassItem item = new ClassItem(classCode, classDesc, formattedStartTime, endTime);
+                        ClassItem item = new ClassItem(classCode, classDesc, formattedStartTime, endTime, classColor);
                         scheduleItems.add(item);
                         adapter.notifyDataSetChanged();
                     } else {

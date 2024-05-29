@@ -62,7 +62,7 @@ public class StudentHome extends Fragment {
         classesValue = rootView.findViewById(R.id.classesValue);
 
         scheduleItems = new ArrayList<>();
-        adapter = new ClassItemAdapter(requireContext(), scheduleItems, R.layout.list_next_class);
+        adapter = new ClassItemAdapter(requireContext(), scheduleItems, R.layout.list_next_class, false);
         listView.setAdapter(adapter);
 
         // Set the current date
@@ -189,10 +189,11 @@ public class StudentHome extends Fragment {
                         String startTime = documentSnapshot.getString("startTime");
                         String formattedStartTime = formatTime(startTime); // Format the start time
                         String endTime = documentSnapshot.getString("endTime");
+                        String classColor = documentSnapshot.getString("classColor");
 
                         Log.d(TAG, "Class Name: " + classDesc);
 
-                        ClassItem item = new ClassItem(classCode, classDesc, formattedStartTime, endTime);
+                        ClassItem item = new ClassItem(classCode, classDesc, formattedStartTime, endTime, classColor);
                         scheduleItems.add(item);
                         adapter.notifyDataSetChanged();
                     } else {
