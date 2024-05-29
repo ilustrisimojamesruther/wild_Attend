@@ -9,6 +9,7 @@ import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -73,36 +74,38 @@ public class FacultyScheduleTimeIn extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View rootView = inflater.inflate(R.layout.fragment_faculty_schedule_timein, container, false);
-        timeinButton = rootView.findViewById(R.id.timeInButton);
-        timeinButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                timeIn(); // Call the method to record time in
-            }
-        });
+        View view = inflater.inflate(R.layout.fragment_faculty_schedule_timein, container, false);
 
-        // Find and set OnClickListener for the back button
-        ImageButton backButton = rootView.findViewById(R.id.backButtonClass);
-        backButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Handle back button click event, for example, pop the fragment from the back stack
-                if (getActivity() != null) {
-                    getActivity().getSupportFragmentManager().popBackStack();
-                }
+        // Set class name and time in the TextViews
+        TextView classNameTextView = view.findViewById(R.id.className);
+        TextView timeDisplayTextView = view.findViewById(R.id.timeDisplay);
+
+        if (mParam1 != null) {
+            classNameTextView.setText(mParam1);
+        }
+        if (mParam2 != null) {
+            timeDisplayTextView.setText(mParam2);
+        }
+
+        Button timeInButton = view.findViewById(R.id.timeInButton);
+        timeInButton.setOnClickListener(v -> timeIn());
+
+        ImageButton backButton = view.findViewById(R.id.backButtonClass);
+        backButton.setOnClickListener(v -> {
+            if (getFragmentManager() != null) {
+                getFragmentManager().popBackStack();
             }
         });
 
         // Initialize views
-        profile_image = rootView.findViewById(R.id.profile_image_faculty);
-        facultyNameTextView = rootView.findViewById(R.id.facultyName);
-        idNumberTextView = rootView.findViewById(R.id.idNumber);
+        profile_image = view.findViewById(R.id.profile_image_faculty);
+        facultyNameTextView = view.findViewById(R.id.facultyName);
+        idNumberTextView = view.findViewById(R.id.idNumber);
 
         // Fetch and display user information
         fetchUserInformation();
 
-        return rootView;
+        return view;
     }
 
     private void fetchUserInformation() {

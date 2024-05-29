@@ -74,18 +74,30 @@ public class FacultyScheduleTimeout extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_faculty_schedule_timeout, container, false);
+
+        // Initialize views
+        profile_image = rootView.findViewById(R.id.profile_image_faculty);
+        facultyNameTextView = rootView.findViewById(R.id.facultyName);
+        idNumberTextView = rootView.findViewById(R.id.idNumber);
         timeoutButtonFaculty = rootView.findViewById(R.id.facultyTimeOutButton);
+
+        // Set class name and time in the TextViews
+        TextView classNameTextView = rootView.findViewById(R.id.className);
+        TextView timeDisplayTextView = rootView.findViewById(R.id.timeDisplay);
+
+        if (mParam1 != null) {
+            classNameTextView.setText(mParam1);
+        }
+        if (mParam2 != null) {
+            timeDisplayTextView.setText(mParam2);
+        }
+
         timeoutButtonFaculty.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 timeOut();
             }
         });
-
-        // Initialize views
-        profile_image = rootView.findViewById(R.id.profile_image_faculty);
-        facultyNameTextView = rootView.findViewById(R.id.facultyName);
-        idNumberTextView = rootView.findViewById(R.id.idNumber);
 
         // Fetch and display user information
         fetchUserInformation();
