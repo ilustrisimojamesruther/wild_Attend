@@ -13,8 +13,11 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.Timestamp;
 
 import java.text.SimpleDateFormat;
@@ -24,6 +27,7 @@ import java.util.List;
 public class FacultyOverAllAttendance extends Fragment {
     private ListView listView;
     private ArrayAdapter<String> adapter;
+    private List<String> attendanceItems;
 
     public FacultyOverAllAttendance() {
         // Required empty public constructor
@@ -43,39 +47,44 @@ public class FacultyOverAllAttendance extends Fragment {
     }
 
     private void setupListView() {
+        attendanceItems = new ArrayList<>();
+        adapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_list_item_1, attendanceItems);
+        listView.setAdapter(adapter);
+
         String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         FirebaseFirestore db = FirebaseFirestore.getInstance();
 
         db.collection("attendRecord")
                 .whereEqualTo("userId", userId)
-                .get()
-                .addOnSuccessListener(queryDocumentSnapshots -> {
-                    List<String> attendanceItems = new ArrayList<>();
+                .addSnapshotListener(new EventListener<QuerySnapshot>() {
+                    @Override
+                    public void onEvent(@Nullable QuerySnapshot queryDocumentSnapshots, @Nullable FirebaseFirestoreException e) {
+                        if (e != null) {
+                            Toast.makeText(requireContext(), "Failed to fetch attendance data", Toast.LENGTH_SHORT).show();
+                            e.printStackTrace();
+                            return;
+                        }
 
-                    for (QueryDocumentSnapshot documentSnapshot : queryDocumentSnapshots) {
-                        String className = documentSnapshot.getString("className");
-                        Timestamp timeInTimestamp = documentSnapshot.getTimestamp("timeIn");
-                        String timeIn = formatTimestamp(timeInTimestamp);
-                        Timestamp timeOutTimestamp = documentSnapshot.getTimestamp("timeOut");
-                        String timeOut = formatTimestamp(timeOutTimestamp);
-                        String message = documentSnapshot.getString("message");
-                        String status = documentSnapshot.getString("status");
+                        attendanceItems.clear();
+                        for (QueryDocumentSnapshot documentSnapshot : queryDocumentSnapshots) {
+                            String className = documentSnapshot.getString("className");
+                            Timestamp timeInTimestamp = documentSnapshot.getTimestamp("timeIn");
+                            String timeIn = formatTimestamp(timeInTimestamp);
+                            Timestamp timeOutTimestamp = documentSnapshot.getTimestamp("timeOut");
+                            String timeOut = formatTimestamp(timeOutTimestamp);
+                            String message = documentSnapshot.getString("message");
+                            String status = documentSnapshot.getString("status");
 
-                        String attendanceEntry = "Class: " + className + "\n"
-                                + "Time In: " + timeIn + "\n"
-                                + "Time Out: " + timeOut + "\n"
-                                + "Message: " + message + "\n"
-                                + "Status: " + status;
+                            String attendanceEntry = "Class: " + className + "\n"
+                                    + "Time In: " + timeIn + "\n"
+                                    + "Time Out: " + timeOut + "\n"
+                                    + "Message: " + message + "\n"
+                                    + "Status: " + status;
 
-                        attendanceItems.add(attendanceEntry);
+                            attendanceItems.add(attendanceEntry);
+                        }
+                        adapter.notifyDataSetChanged();
                     }
-
-                    adapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_list_item_1, attendanceItems);
-                    listView.setAdapter(adapter);
-                })
-                .addOnFailureListener(e -> {
-                    Toast.makeText(requireContext(), "Failed to fetch attendance data", Toast.LENGTH_SHORT).show();
-                    e.printStackTrace();
                 });
     }
 

@@ -32,8 +32,6 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-
-
 public class StudentSchedule extends Fragment {
 
     private static final String TAG = "StudentSchedule";
@@ -151,22 +149,21 @@ public class StudentSchedule extends Fragment {
         }
     }
 
-
     private void setupListView() {
         listView.setOnItemClickListener((parent, view, position, id) -> {
             ClassItem selectedItem = (ClassItem) parent.getItemAtPosition(position);
             if (selectedItem != null) {
-                // Navigate to the detailed schedule of the selected class
-                navigateToClassSchedule(selectedItem.getClassCode());
+                // Pass both class code and formatted start time
+                navigateToClassSchedule(selectedItem.getClassCode(), selectedItem.getStartTime());
             }
         });
     }
 
-    private void navigateToClassSchedule(String classCode) {
-        // Create instance of StudentScheduleClass fragment and pass class code as argument
-        StudentScheduleTimeIn studentScheduleClassFragment = StudentScheduleTimeIn.newInstance(classCode, null);
+    private void navigateToClassSchedule(String classCode, String classTime) {
+        // Create instance of StudentScheduleTimeIn fragment and pass class code and time as arguments
+        StudentScheduleTimeIn studentScheduleClassFragment = StudentScheduleTimeIn.newInstance(classCode, classTime);
 
-        // Navigate to the StudentScheduleClass fragment
+        // Navigate to the StudentScheduleTimeIn fragment
         getParentFragmentManager().beginTransaction()
                 .replace(R.id.frame_layout, studentScheduleClassFragment)
                 .addToBackStack(null)
