@@ -111,7 +111,7 @@ public class StudentScheduleTimeout extends Fragment {
 
             FirebaseFirestore db = FirebaseFirestore.getInstance();
             db.collection("users")
-                    .whereEqualTo("email", userEmail) // Assuming the field in Firestore is "email"
+                    .whereEqualTo("email", userEmail)
                     .get()
                     .addOnSuccessListener(queryDocumentSnapshots -> {
                         for (QueryDocumentSnapshot documentSnapshot : queryDocumentSnapshots) {
@@ -133,7 +133,6 @@ public class StudentScheduleTimeout extends Fragment {
                     });
         } else {
             Log.e(TAG, "User is not authenticated");
-            // Handle the case where the user is not authenticated or has signed out
         }
     }
 
@@ -141,8 +140,7 @@ public class StudentScheduleTimeout extends Fragment {
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
         if (currentUser != null) {
             String userId = currentUser.getUid();
-            String className = mParam1; // Assuming you have the class name available
-            String time = mParam2; // Assuming you have the class time available
+            String classCode = mParam1; // Assuming you have the class code available
             Date timestamp = new Date(); // Get current timestamp
 
             FirebaseFirestore db = FirebaseFirestore.getInstance();
@@ -151,16 +149,33 @@ public class StudentScheduleTimeout extends Fragment {
             Map<String, Object> timeoutData = new HashMap<>();
             timeoutData.put("timeOut", timestamp);
 
-            // Use set with SetOptions.merge() to update the document with time out
-            db.collection("attendRecord")
-                    .document(userId + "_" + className)
-                    .set(timeoutData, SetOptions.merge())
-                    .addOnSuccessListener(aVoid -> {
-                        Log.d(TAG, "Time out recorded successfully!");
-                        showTimeoutPopup();
+            // Fetch the class document first
+            db.collection("classes")
+                    .whereEqualTo("classCode", classCode)
+                    .get()
+                    .addOnSuccessListener(queryDocumentSnapshots -> {
+                        if (!queryDocumentSnapshots.isEmpty()) {
+                            // Assuming classCode is unique and we get only one document
+                            QueryDocumentSnapshot classDocument = (QueryDocumentSnapshot) queryDocumentSnapshots.getDocuments().get(0);
+                            String classId = classDocument.getId();
+
+                            // Update the timeOut field in the attendance record
+                            db.collection("attendRecord")
+                                    .document(userId + "_" + classId)
+                                    .set(timeoutData, SetOptions.merge())
+                                    .addOnSuccessListener(aVoid -> {
+                                        Log.d(TAG, "Time out recorded successfully!");
+                                        showTimeoutPopup();
+                                    })
+                                    .addOnFailureListener(e -> {
+                                        Log.e(TAG, "Error recording time out", e);
+                                    });
+                        } else {
+                            Log.e(TAG, "Class document does not exist for class: " + classCode);
+                        }
                     })
                     .addOnFailureListener(e -> {
-                        Log.e(TAG, "Error recording time out", e);
+                        Log.e(TAG, "Error fetching class document", e);
                     });
         } else {
             Log.e(TAG, "User not authenticated");

@@ -15,6 +15,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.widget.AppCompatButton;
 import androidx.fragment.app.Fragment;
@@ -146,39 +147,70 @@ public class StudentScheduleTimeIn extends Fragment {
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
         if (currentUser != null) {
             String userId = currentUser.getUid();
-            String className = mParam1; // Assuming you have the class name available
-            String time = mParam2; // Assuming you have the class time available
+            String classCode = getArguments().getString(ARG_PARAM1); // Retrieve class code from arguments
+            String time = getArguments().getString(ARG_PARAM2); // Retrieve class time from arguments
             String message = "I'm here on time"; // Default message, you can customize this
             Date timestamp = new Date(); // Get current timestamp
 
             FirebaseFirestore db = FirebaseFirestore.getInstance();
 
-            // Create a map to hold the attendance data
-            Map<String, Object> attendanceRecord = new HashMap<>();
-            attendanceRecord.put("userId", userId);
-            attendanceRecord.put("message", message);
-            attendanceRecord.put("status", "On-Time");
-            attendanceRecord.put("timeIn", timestamp);
-            attendanceRecord.put("className", className);
+            Log.d(TAG, "Class code: " + classCode); // Add this debug log
 
-            // Use set with SetOptions.merge() to update the document if it exists or create it if it doesn't
-            db.collection("attendRecord")
-                    .document(userId + "_" + className)
-                    .set(attendanceRecord, SetOptions.merge())
-                    .addOnSuccessListener(aVoid -> {
-                        Log.d(TAG, "Time in recorded successfully!");
-                        // Show the popup when time in is recorded successfully
-                        showPopup();
+            // Step 1: Fetch the class ID using the class code
+            db.collection("classes")
+                    .whereEqualTo("classCode", classCode)
+                    .get()
+                    .addOnSuccessListener(queryDocumentSnapshots -> {
+                        if (!queryDocumentSnapshots.isEmpty()) {
+                            // Assuming classCode is unique and we get only one document
+                            QueryDocumentSnapshot classDocument = (QueryDocumentSnapshot) queryDocumentSnapshots.getDocuments().get(0);
+                            String classId = classDocument.getId();
+                            Log.d(TAG, "Class ID: " + classId);
+
+                            Boolean ongoing = classDocument.getBoolean("Ongoing");
+                            if (ongoing != null && ongoing) {
+                                // Class is ongoing, allow the student to time in
+                                // Create a map to hold the attendance data
+                                Map<String, Object> attendanceRecord = new HashMap<>();
+                                attendanceRecord.put("userId", userId);
+                                attendanceRecord.put("message", message);
+                                attendanceRecord.put("status", "On-Time");
+                                attendanceRecord.put("timeIn", timestamp);
+                                attendanceRecord.put("classCode", classCode); // Use class code
+
+                                // Use set with SetOptions.merge() to update the document if it exists or create it if it doesn't
+                                db.collection("attendRecord")
+                                        .document(userId + "_" + classId) // Use class ID
+                                        .set(attendanceRecord, SetOptions.merge())
+                                        .addOnSuccessListener(aVoid -> {
+                                            Log.d(TAG, "Time in recorded successfully!");
+                                            // Show the popup when time in is recorded successfully
+                                            showPopup();
+                                        })
+                                        .addOnFailureListener(e -> {
+                                            Log.e(TAG, "Error recording time in", e);
+                                            // Handle error
+                                        });
+                            } else {
+                                // Class is not ongoing, inform the user
+                                Log.d(TAG, "Class is not ongoing. Cannot time in.");
+                                Toast.makeText(getContext(), "Class is not ongoing. Cannot time in.", Toast.LENGTH_LONG).show();
+                            }
+                        } else {
+                            Log.e(TAG, "Class document does not exist for class: " + classCode); // Add this debug log
+                            Toast.makeText(getContext(), "Class does not exist.", Toast.LENGTH_LONG).show();
+                        }
                     })
                     .addOnFailureListener(e -> {
-                        Log.e(TAG, "Error recording time in", e);
-                        // Handle error
+                        Log.e(TAG, "Error checking if class is ongoing", e);
+                        Toast.makeText(getContext(), "Error checking class status.", Toast.LENGTH_LONG).show();
                     });
         } else {
             Log.e(TAG, "User not authenticated");
-            // Handle authentication error
+            Toast.makeText(getContext(), "User not authenticated.", Toast.LENGTH_LONG).show();
         }
     }
+
 
     private void showPopup() {
         View popupView = getLayoutInflater().inflate(R.layout.popup_timein, null);
