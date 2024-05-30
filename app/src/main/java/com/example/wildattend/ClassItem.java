@@ -6,13 +6,15 @@ public class ClassItem {
     private String startTime;
     private String endTime;
     private String classColor;
+    private String classRoom;
 
-    public ClassItem(String classCode, String classDesc, String startTime, String endTime, String classColor) {
+    public ClassItem(String classCode, String classDesc, String startTime, String endTime, String classColor, String classRoom) {
         this.classCode = classCode;
         this.classDesc = classDesc;
         this.startTime = startTime;
         this.endTime = endTime;
         this.classColor = classColor;
+        this.classRoom = classRoom;
     }
 
     // Getters and setters
@@ -21,5 +23,6 @@ public class ClassItem {
     public String getStartTime() { return startTime; }
     public String getEndTime() { return endTime; }
     public String getClassColor() { return classColor; }
+    public String getClassRoom() { return classRoom; }
 
 }

@@ -86,7 +86,7 @@
 
         <!-- MaterialTextView (Centered) -->
         <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/icon_text"
+            android:id="@+id/classCode"
             android:layout_width="74dp"
             android:layout_height="74dp"
             android:layout_gravity="center_horizontal"

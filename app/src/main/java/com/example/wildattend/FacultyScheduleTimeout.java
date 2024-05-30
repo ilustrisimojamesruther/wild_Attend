@@ -37,12 +37,18 @@ import java.util.Map;
 public class FacultyScheduleTimeout extends Fragment {
 
     private AppCompatButton timeoutButtonFaculty;
-    private static final String ARG_PARAM1 = "className";
-    private static final String ARG_PARAM2 = "time";
+    private static final String ARG_PARAM1 = "param1";
+    private static final String ARG_PARAM2 = "param2";
+    private static final String ARG_PARAM3 = "param3";
+    private static final String ARG_PARAM4 = "param4";
+    private static final String ARG_PARAM5 = "param5";
     private static final String TAG = "FacultyScheduleTimeout";
 
     private String mParam1;
     private String mParam2;
+    private String mParam3;
+    private String mParam4;
+    private String mParam5;
 
     private TextView facultyNameTextView;
     private TextView idNumberTextView;
@@ -52,11 +58,14 @@ public class FacultyScheduleTimeout extends Fragment {
         // Required empty public constructor
     }
 
-    public static FacultyScheduleTimeout newInstance(String className, String time) {
+    public static FacultyScheduleTimeout newInstance(String param1, String param2, String param3, String param4, String param5) {
         FacultyScheduleTimeout fragment = new FacultyScheduleTimeout();
         Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, className);
-        args.putString(ARG_PARAM2, time);
+        args.putString(ARG_PARAM1, param1);
+        args.putString(ARG_PARAM2, param2);
+        args.putString(ARG_PARAM3, param3);
+        args.putString(ARG_PARAM4, param4);
+        args.putString(ARG_PARAM5, param5);
         fragment.setArguments(args);
         return fragment;
     }
@@ -67,6 +76,9 @@ public class FacultyScheduleTimeout extends Fragment {
         if (getArguments() != null) {
             mParam1 = getArguments().getString(ARG_PARAM1);
             mParam2 = getArguments().getString(ARG_PARAM2);
+            mParam3 = getArguments().getString(ARG_PARAM3);
+            mParam4 = getArguments().getString(ARG_PARAM4);
+            mParam5 = getArguments().getString(ARG_PARAM5);
         }
     }
 
@@ -82,14 +94,23 @@ public class FacultyScheduleTimeout extends Fragment {
         timeoutButtonFaculty = rootView.findViewById(R.id.facultyTimeOutButton);
 
         // Set class name and time in the TextViews
-        TextView classNameTextView = rootView.findViewById(R.id.className);
+        TextView classCodeTextView = rootView.findViewById(R.id.classCode2);
         TextView timeDisplayTextView = rootView.findViewById(R.id.timeDisplay);
+        TextView classNameTextView = rootView.findViewById(R.id.className);
+        TextView roomLocationTextView = rootView.findViewById(R.id.roomLocation);
 
         if (mParam1 != null) {
-            classNameTextView.setText(mParam1);
+            classCodeTextView.setText(mParam1);
         }
-        if (mParam2 != null) {
-            timeDisplayTextView.setText(mParam2);
+        if (mParam2 != null && mParam3 != null) {
+            String timeDisplay = mParam2 + " - " + mParam3;
+            timeDisplayTextView.setText(timeDisplay);
+        }
+        if (mParam4 != null) {
+            classNameTextView.setText(mParam4);
+        }
+        if (mParam5 != null) {
+            roomLocationTextView.setText(mParam5);
         }
 
         timeoutButtonFaculty.setOnClickListener(new View.OnClickListener() {

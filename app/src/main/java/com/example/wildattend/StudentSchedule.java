@@ -121,11 +121,13 @@ public class StudentSchedule extends Fragment {
                         String classCode = documentSnapshot.getString("classCode");
                         String classDesc = documentSnapshot.getString("classDesc");
                         String startTime = documentSnapshot.getString("startTime");
-                        String formattedStartTime = formatTime(startTime); // Format the start time
+                        String formattedStartTime = formatTime(startTime);
                         String endTime = documentSnapshot.getString("endTime");
+                        String formattedEndTime = formatTime(endTime);
                         String classColor = documentSnapshot.getString("classColor");
+                        String classRoom = documentSnapshot.getString("classRoom");
 
-                        ClassItem item = new ClassItem(classCode, classDesc, formattedStartTime, endTime, classColor);
+                        ClassItem item = new ClassItem(classCode, classDesc, formattedStartTime, formattedEndTime, classColor, classRoom);
                         scheduleItems.add(item);
                         adapter.notifyDataSetChanged();
                     } else {
@@ -155,14 +157,14 @@ public class StudentSchedule extends Fragment {
             ClassItem selectedItem = (ClassItem) parent.getItemAtPosition(position);
             if (selectedItem != null) {
                 // Pass both class code and formatted start time
-                navigateToClassSchedule(selectedItem.getClassCode(), selectedItem.getStartTime());
+                navigateToClassSchedule(selectedItem.getClassCode(), selectedItem.getStartTime(), selectedItem.getEndTime(), selectedItem.getClassDesc(), selectedItem.getClassRoom());
             }
         });
     }
 
-    private void navigateToClassSchedule(String classCode, String classTime) {
+    private void navigateToClassSchedule(String classCode, String startTime, String endTime, String classDesc, String classRoom) {
         // Create instance of StudentScheduleTimeIn fragment and pass class code and time as arguments
-        StudentScheduleTimeIn studentScheduleClassFragment = StudentScheduleTimeIn.newInstance(classCode, classTime);
+        StudentScheduleTimeIn studentScheduleClassFragment = StudentScheduleTimeIn.newInstance(classCode, startTime, endTime, classDesc, classRoom);
 
         // Navigate to the StudentScheduleTimeIn fragment
         getParentFragmentManager().beginTransaction()

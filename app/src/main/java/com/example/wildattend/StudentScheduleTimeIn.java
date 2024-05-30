@@ -15,7 +15,6 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.appcompat.widget.AppCompatButton;
 import androidx.fragment.app.Fragment;
@@ -42,10 +41,16 @@ public class StudentScheduleTimeIn extends Fragment {
     private AppCompatButton timeinButton;
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
+    private static final String ARG_PARAM3 = "param3";
+    private static final String ARG_PARAM4 = "param4";
+    private static final String ARG_PARAM5 = "param5";
     private static final String TAG = "StudentScheduleTimeIn";
 
     private String mParam1;
     private String mParam2;
+    private String mParam3;
+    private String mParam4;
+    private String mParam5;
 
     private TextView studentNameTextView;
     private TextView idNumberTextView;
@@ -55,11 +60,14 @@ public class StudentScheduleTimeIn extends Fragment {
         // Required empty public constructor
     }
 
-    public static StudentScheduleTimeIn newInstance(String param1, String param2) {
+    public static StudentScheduleTimeIn newInstance(String param1, String param2, String param3, String param4, String param5) {
         StudentScheduleTimeIn fragment = new StudentScheduleTimeIn();
         Bundle args = new Bundle();
         args.putString(ARG_PARAM1, param1);
         args.putString(ARG_PARAM2, param2);
+        args.putString(ARG_PARAM3, param3);
+        args.putString(ARG_PARAM4, param4);
+        args.putString(ARG_PARAM5, param5);
         fragment.setArguments(args);
         return fragment;
     }
@@ -70,6 +78,9 @@ public class StudentScheduleTimeIn extends Fragment {
         if (getArguments() != null) {
             mParam1 = getArguments().getString(ARG_PARAM1);
             mParam2 = getArguments().getString(ARG_PARAM2);
+            mParam3 = getArguments().getString(ARG_PARAM3);
+            mParam4 = getArguments().getString(ARG_PARAM4);
+            mParam5 = getArguments().getString(ARG_PARAM5);
         }
     }
 
@@ -79,14 +90,23 @@ public class StudentScheduleTimeIn extends Fragment {
         View view = inflater.inflate(R.layout.fragment_student_schedule_timein, container, false);
 
         // Set class name and time in the TextViews
-        TextView classNameTextView = view.findViewById(R.id.className);
+        TextView classCodeTextView = view.findViewById(R.id.classCode);
         TextView timeDisplayTextView = view.findViewById(R.id.timeDisplay);
+        TextView classNameTextView = view.findViewById(R.id.className);
+        TextView roomLocationTextView = view.findViewById(R.id.roomLocation);
 
         if (mParam1 != null) {
-            classNameTextView.setText(mParam1);
+            classCodeTextView.setText(mParam1);
         }
-        if (mParam2 != null) {
-            timeDisplayTextView.setText(mParam2);
+        if (mParam2 != null && mParam3 != null) {
+            String timeDisplay = mParam2 + " - " + mParam3;
+            timeDisplayTextView.setText(timeDisplay);
+        }
+        if (mParam4 != null) {
+            classNameTextView.setText(mParam4);
+        }
+        if (mParam5 != null) {
+            roomLocationTextView.setText(mParam5);
         }
 
         Button timeInButton = view.findViewById(R.id.timeInButton);
@@ -147,70 +167,42 @@ public class StudentScheduleTimeIn extends Fragment {
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
         if (currentUser != null) {
             String userId = currentUser.getUid();
-            String classCode = getArguments().getString(ARG_PARAM1); // Retrieve class code from arguments
-            String time = getArguments().getString(ARG_PARAM2); // Retrieve class time from arguments
+            String classCode = mParam1; // Assuming you have the class name available
+            String roomLocation = mParam5;
+            String classDesc = mParam4;
+            String startTime = mParam2;
+            String endTime = mParam3;
             String message = "I'm here on time"; // Default message, you can customize this
             Date timestamp = new Date(); // Get current timestamp
 
             FirebaseFirestore db = FirebaseFirestore.getInstance();
 
-            Log.d(TAG, "Class code: " + classCode); // Add this debug log
+            // Create a map to hold the attendance data
+            Map<String, Object> attendanceRecord = new HashMap<>();
+            attendanceRecord.put("userId", userId);
+            attendanceRecord.put("message", message);
+            attendanceRecord.put("status", "On-Time");
+            attendanceRecord.put("timeIn", timestamp);
+            attendanceRecord.put("className", classCode);
 
-            // Step 1: Fetch the class ID using the class code
-            db.collection("classes")
-                    .whereEqualTo("classCode", classCode)
-                    .get()
-                    .addOnSuccessListener(queryDocumentSnapshots -> {
-                        if (!queryDocumentSnapshots.isEmpty()) {
-                            // Assuming classCode is unique and we get only one document
-                            QueryDocumentSnapshot classDocument = (QueryDocumentSnapshot) queryDocumentSnapshots.getDocuments().get(0);
-                            String classId = classDocument.getId();
-                            Log.d(TAG, "Class ID: " + classId);
-
-                            Boolean ongoing = classDocument.getBoolean("Ongoing");
-                            if (ongoing != null && ongoing) {
-                                // Class is ongoing, allow the student to time in
-                                // Create a map to hold the attendance data
-                                Map<String, Object> attendanceRecord = new HashMap<>();
-                                attendanceRecord.put("userId", userId);
-                                attendanceRecord.put("message", message);
-                                attendanceRecord.put("status", "On-Time");
-                                attendanceRecord.put("timeIn", timestamp);
-                                attendanceRecord.put("classCode", classCode); // Use class code
-
-                                // Use set with SetOptions.merge() to update the document if it exists or create it if it doesn't
-                                db.collection("attendRecord")
-                                        .document(userId + "_" + classId) // Use class ID
-                                        .set(attendanceRecord, SetOptions.merge())
-                                        .addOnSuccessListener(aVoid -> {
-                                            Log.d(TAG, "Time in recorded successfully!");
-                                            // Show the popup when time in is recorded successfully
-                                            showPopup();
-                                        })
-                                        .addOnFailureListener(e -> {
-                                            Log.e(TAG, "Error recording time in", e);
-                                            // Handle error
-                                        });
-                            } else {
-                                // Class is not ongoing, inform the user
-                                Log.d(TAG, "Class is not ongoing. Cannot time in.");
-                                Toast.makeText(getContext(), "Class is not ongoing. Cannot time in.", Toast.LENGTH_LONG).show();
-                            }
-                        } else {
-                            Log.e(TAG, "Class document does not exist for class: " + classCode); // Add this debug log
-                            Toast.makeText(getContext(), "Class does not exist.", Toast.LENGTH_LONG).show();
-                        }
+            // Use set with SetOptions.merge() to update the document if it exists or create it if it doesn't
+            db.collection("attendRecord")
+                    .document(userId + "_" + classCode)
+                    .set(attendanceRecord, SetOptions.merge())
+                    .addOnSuccessListener(aVoid -> {
+                        Log.d(TAG, "Time in recorded successfully!");
+                        // Show the popup when time in is recorded successfully
+                        showPopup();
                     })
                     .addOnFailureListener(e -> {
-                        Log.e(TAG, "Error checking if class is ongoing", e);
-                        Toast.makeText(getContext(), "Error checking class status.", Toast.LENGTH_LONG).show();
+                        Log.e(TAG, "Error recording time in", e);
+                        // Handle error
                     });
         } else {
             Log.e(TAG, "User not authenticated");
-            Toast.makeText(getContext(), "User not authenticated.", Toast.LENGTH_LONG).show();
+            // Handle authentication error
         }
     }
-
 
     private void showPopup() {
         View popupView = getLayoutInflater().inflate(R.layout.popup_timein, null);
@@ -247,7 +239,7 @@ public class StudentScheduleTimeIn extends Fragment {
 
     private void navigateToStudentScheduleTimeout() {
         // Create instance of StudentScheduleTimeout fragment
-        StudentScheduleTimeout studentScheduleTimeoutFragment = StudentScheduleTimeout.newInstance(mParam1, mParam2);
+        StudentScheduleTimeout studentScheduleTimeoutFragment = StudentScheduleTimeout.newInstance(mParam1, mParam2, mParam3, mParam4, mParam5);
 
         // Navigate to the StudentScheduleTimeout fragment
         FragmentTransaction transaction = getParentFragmentManager().beginTransaction();

@@ -40,10 +40,16 @@ public class FacultyScheduleTimeIn extends Fragment {
     private AppCompatButton timeinButton;
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
+    private static final String ARG_PARAM3 = "param3";
+    private static final String ARG_PARAM4 = "param4";
+    private static final String ARG_PARAM5 = "param5";
     private static final String TAG = "FacultyScheduleTimeIn";
 
     private String mParam1;
     private String mParam2;
+    private String mParam3;
+    private String mParam4;
+    private String mParam5;
 
     private TextView facultyNameTextView;
     private TextView idNumberTextView;
@@ -53,11 +59,14 @@ public class FacultyScheduleTimeIn extends Fragment {
         // Required empty public constructor
     }
 
-    public static FacultyScheduleTimeIn newInstance(String param1, String param2) {
+    public static FacultyScheduleTimeIn newInstance(String param1, String param2, String param3, String param4, String param5) {
         FacultyScheduleTimeIn fragment = new FacultyScheduleTimeIn();
         Bundle args = new Bundle();
         args.putString(ARG_PARAM1, param1);
         args.putString(ARG_PARAM2, param2);
+        args.putString(ARG_PARAM3, param3);
+        args.putString(ARG_PARAM4, param4);
+        args.putString(ARG_PARAM5, param5);
         fragment.setArguments(args);
         return fragment;
     }
@@ -68,6 +77,9 @@ public class FacultyScheduleTimeIn extends Fragment {
         if (getArguments() != null) {
             mParam1 = getArguments().getString(ARG_PARAM1);
             mParam2 = getArguments().getString(ARG_PARAM2);
+            mParam3 = getArguments().getString(ARG_PARAM3);
+            mParam4 = getArguments().getString(ARG_PARAM4);
+            mParam5 = getArguments().getString(ARG_PARAM5);
         }
     }
 
@@ -77,14 +89,23 @@ public class FacultyScheduleTimeIn extends Fragment {
         View view = inflater.inflate(R.layout.fragment_faculty_schedule_timein, container, false);
 
         // Set class name and time in the TextViews
-        TextView classNameTextView = view.findViewById(R.id.className);
+        TextView classCodeTextView = view.findViewById(R.id.course_code);
         TextView timeDisplayTextView = view.findViewById(R.id.timeDisplay);
+        TextView classDescTextView = view.findViewById(R.id.className);
+        TextView roomLocationTextView = view.findViewById(R.id.roomLocation);
 
         if (mParam1 != null) {
-            classNameTextView.setText(mParam1);
+            classCodeTextView.setText(mParam1);
         }
-        if (mParam2 != null) {
-            timeDisplayTextView.setText(mParam2);
+        if (mParam2 != null && mParam3 != null) {
+            String timeDisplay = mParam2 + " - " + mParam3;
+            timeDisplayTextView.setText(timeDisplay);
+        }
+        if (mParam4 != null) {
+            classDescTextView.setText(mParam4);
+        }
+        if (mParam5 != null) {
+            roomLocationTextView.setText(mParam5);
         }
 
         Button timeInButton = view.findViewById(R.id.timeInButton);
@@ -146,7 +167,10 @@ public class FacultyScheduleTimeIn extends Fragment {
         if (currentUser != null) {
             String userId = currentUser.getUid();
             String className = mParam1; // Assuming you have the class name available
-            String time = mParam2; // Assuming you have the class time available
+            String roomLocation = mParam5;
+            String classDesc = mParam4;
+            String startTime = mParam2;
+            String endTime = mParam3;
             String message = "I'm here on time"; // Default message, you can customize this
             Date timestamp = new Date(); // Get current timestamp
 
@@ -214,7 +238,7 @@ public class FacultyScheduleTimeIn extends Fragment {
 
     private void navigateToFacultyScheduleTimeout() {
         // Create instance of FacultyScheduleTimeout fragment
-        FacultyScheduleTimeout facultyScheduleTimeoutFragment = FacultyScheduleTimeout.newInstance(mParam1, mParam2);
+        FacultyScheduleTimeout facultyScheduleTimeoutFragment = FacultyScheduleTimeout.newInstance(mParam1, mParam2, mParam3, mParam4, mParam5);
 
         // Navigate to the FacultyScheduleTimeout fragment
         FragmentTransaction transaction = getParentFragmentManager().beginTransaction();

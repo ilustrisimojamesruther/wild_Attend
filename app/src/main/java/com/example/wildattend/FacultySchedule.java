@@ -124,11 +124,13 @@ public class FacultySchedule extends Fragment {
                         String startTime = documentSnapshot.getString("startTime");
                         String formattedStartTime = formatTime(startTime); // Format the start time
                         String endTime = documentSnapshot.getString("endTime");
+                        String formattedEndTime = formatTime(endTime); // Format the start time
                         String classColor = documentSnapshot.getString("classColor");
+                        String classRoom = documentSnapshot.getString("classRoom");
 
                         Log.d(TAG, "Class Name: " + classDesc);
 
-                        ClassItem item = new ClassItem(classCode, classDesc, formattedStartTime, endTime, classColor);
+                        ClassItem item = new ClassItem(classCode, classDesc, formattedStartTime, formattedEndTime, classColor, classRoom);
                         scheduleItems.add(item);
                         adapter.notifyDataSetChanged();
                     } else {
@@ -161,15 +163,15 @@ public class FacultySchedule extends Fragment {
             ClassItem selectedItem = (ClassItem) parent.getItemAtPosition(position);
             if (selectedItem != null) {
                 // Navigate to the detailed schedule of the selected class
-                navigateToClassSchedule(selectedItem.getClassCode());
+                navigateToClassSchedule(selectedItem.getClassCode(), selectedItem.getStartTime(), selectedItem.getEndTime(), selectedItem.getClassDesc(), selectedItem.getClassRoom());
             }
         });
     }
 
 
-    private void navigateToClassSchedule(String classCode) {
+    private void navigateToClassSchedule(String classCode, String startTime, String endTime, String classDesc, String classRoom) {
         // Create instance of FacultyScheduleTimeIn fragment and pass class code as argument
-        FacultyScheduleTimeIn facultyScheduleTimeInFragment = FacultyScheduleTimeIn.newInstance(classCode, null);
+        FacultyScheduleTimeIn facultyScheduleTimeInFragment = FacultyScheduleTimeIn.newInstance(classCode, startTime, endTime, classDesc, classRoom);
 
         // Navigate to the FacultyScheduleTimeIn fragment
         getParentFragmentManager().beginTransaction()

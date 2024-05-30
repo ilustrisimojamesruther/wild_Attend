@@ -71,21 +71,23 @@
             android:layout_gravity="end|top"/>
 
         <!-- MaterialTextView (Centered) -->
-        <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/icon_text"
+
+        <!-- Class Name -->
+
+        <TextView
+            android:id="@+id/classCode2"
             android:layout_width="74dp"
             android:layout_height="74dp"
             android:layout_gravity="center_horizontal"
+            android:layout_marginTop="20dp"
             android:background="@drawable/circle_background"
             android:gravity="center"
             android:text="HAM"
             android:textColor="@android:color/white"
-            android:layout_marginTop="20dp"
             android:textSize="22sp"
             android:textStyle="bold"
             app:layout_constraintBottom_toTopOf="@+id/className" />
 
-        <!-- Class Name -->
         <TextView
             android:id="@+id/className"
             android:layout_width="wrap_content"
