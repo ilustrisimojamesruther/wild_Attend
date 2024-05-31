@@ -1,7 +1,9 @@
 package com.example.wildattend;
 
+import android.content.res.ColorStateList;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
@@ -42,6 +44,7 @@ public class FacultyScheduleTimeout extends Fragment {
     private static final String ARG_PARAM3 = "param3";
     private static final String ARG_PARAM4 = "param4";
     private static final String ARG_PARAM5 = "param5";
+    private static final String ARG_PARAM6 = "param6";
     private static final String TAG = "FacultyScheduleTimeout";
 
     private String mParam1;
@@ -49,6 +52,7 @@ public class FacultyScheduleTimeout extends Fragment {
     private String mParam3;
     private String mParam4;
     private String mParam5;
+    private String mParam6;
 
     private TextView facultyNameTextView;
     private TextView idNumberTextView;
@@ -58,7 +62,7 @@ public class FacultyScheduleTimeout extends Fragment {
         // Required empty public constructor
     }
 
-    public static FacultyScheduleTimeout newInstance(String param1, String param2, String param3, String param4, String param5) {
+    public static FacultyScheduleTimeout newInstance(String param1, String param2, String param3, String param4, String param5, String param6) {
         FacultyScheduleTimeout fragment = new FacultyScheduleTimeout();
         Bundle args = new Bundle();
         args.putString(ARG_PARAM1, param1);
@@ -66,6 +70,7 @@ public class FacultyScheduleTimeout extends Fragment {
         args.putString(ARG_PARAM3, param3);
         args.putString(ARG_PARAM4, param4);
         args.putString(ARG_PARAM5, param5);
+        args.putString(ARG_PARAM6, param6);
         fragment.setArguments(args);
         return fragment;
     }
@@ -79,6 +84,7 @@ public class FacultyScheduleTimeout extends Fragment {
             mParam3 = getArguments().getString(ARG_PARAM3);
             mParam4 = getArguments().getString(ARG_PARAM4);
             mParam5 = getArguments().getString(ARG_PARAM5);
+            mParam6 = getArguments().getString(ARG_PARAM6);
         }
     }
 
@@ -98,6 +104,7 @@ public class FacultyScheduleTimeout extends Fragment {
         TextView timeDisplayTextView = rootView.findViewById(R.id.timeDisplay);
         TextView classNameTextView = rootView.findViewById(R.id.className);
         TextView roomLocationTextView = rootView.findViewById(R.id.roomLocation);
+        View classColorCircle = rootView.findViewById(R.id.classColorCircle2);
 
         if (mParam1 != null) {
             classCodeTextView.setText(mParam1);
@@ -111,6 +118,13 @@ public class FacultyScheduleTimeout extends Fragment {
         }
         if (mParam5 != null) {
             roomLocationTextView.setText(mParam5);
+        }
+        if (mParam6 != null) {
+            int classColor = Color.parseColor(mParam6);
+            classColorCircle.setBackgroundColor(classColor);
+            classColorCircle.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor(mParam6)));
+            classColorCircle.setBackground(getResources().getDrawable(R.drawable.circle_background));
+
         }
 
         timeoutButtonFaculty.setOnClickListener(new View.OnClickListener() {

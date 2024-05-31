@@ -163,15 +163,15 @@ public class FacultySchedule extends Fragment {
             ClassItem selectedItem = (ClassItem) parent.getItemAtPosition(position);
             if (selectedItem != null) {
                 // Navigate to the detailed schedule of the selected class
-                navigateToClassSchedule(selectedItem.getClassCode(), selectedItem.getStartTime(), selectedItem.getEndTime(), selectedItem.getClassDesc(), selectedItem.getClassRoom());
+                navigateToClassSchedule(selectedItem.getClassCode(), selectedItem.getStartTime(), selectedItem.getEndTime(), selectedItem.getClassDesc(), selectedItem.getClassRoom(), selectedItem.getClassColor());
             }
         });
     }
 
 
-    private void navigateToClassSchedule(String classCode, String startTime, String endTime, String classDesc, String classRoom) {
+    private void navigateToClassSchedule(String classCode, String startTime, String endTime, String classDesc, String classRoom, String classColor) {
         // Create instance of FacultyScheduleTimeIn fragment and pass class code as argument
-        FacultyScheduleTimeIn facultyScheduleTimeInFragment = FacultyScheduleTimeIn.newInstance(classCode, startTime, endTime, classDesc, classRoom);
+        FacultyScheduleTimeIn facultyScheduleTimeInFragment = FacultyScheduleTimeIn.newInstance(classCode, startTime, endTime, classDesc, classRoom, classColor);
 
         // Navigate to the FacultyScheduleTimeIn fragment
         getParentFragmentManager().beginTransaction()

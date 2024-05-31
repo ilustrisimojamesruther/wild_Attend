@@ -72,15 +72,21 @@
 
         <!-- MaterialTextView (Centered) -->
 
-        <!-- Class Name -->
+        <View
+            android:id="@+id/classColorCircle2"
+            android:layout_width="74dp"
+            android:layout_height="74dp"
+            android:layout_marginTop="20dp"
+            android:layout_gravity="center_horizontal"
+            android:background="@drawable/circle_background" />
 
+        <!-- Class Name -->
         <TextView
             android:id="@+id/classCode2"
             android:layout_width="74dp"
             android:layout_height="74dp"
             android:layout_gravity="center_horizontal"
             android:layout_marginTop="20dp"
-            android:background="@drawable/circle_background"
             android:gravity="center"
             android:text="HAM"
             android:textColor="@android:color/white"
