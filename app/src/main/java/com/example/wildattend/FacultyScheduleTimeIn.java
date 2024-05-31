@@ -119,7 +119,6 @@ public class FacultyScheduleTimeIn extends Fragment {
             classColorCircle.setBackgroundColor(classColor);
             classColorCircle.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor(mParam6)));
             classColorCircle.setBackground(getResources().getDrawable(R.drawable.circle_background));
-
         }
 
         Button timeInButton = view.findViewById(R.id.timeInButton);
@@ -190,25 +189,127 @@ public class FacultyScheduleTimeIn extends Fragment {
 
             FirebaseFirestore db = FirebaseFirestore.getInstance();
 
-            // Create a map to hold the attendance data
-            Map<String, Object> attendanceRecord = new HashMap<>();
-            attendanceRecord.put("userId", userId);
-            attendanceRecord.put("message", message);
-            attendanceRecord.put("status", "On-Time");
-            attendanceRecord.put("timeIn", timestamp);
-            attendanceRecord.put("className", className);
+            // Step 1: Fetch the class ID using the class code
+            db.collection("classes")
+                    .whereEqualTo("classCode", className)
+                    .get()
+                    .addOnSuccessListener(queryDocumentSnapshots -> {
+                        if (!queryDocumentSnapshots.isEmpty()) {
+                            // Assuming classCode is unique and we get only one document
+                            QueryDocumentSnapshot classDocument = (QueryDocumentSnapshot) queryDocumentSnapshots.getDocuments().get(0);
+                            String classId = classDocument.getId();
 
-            // Use set with SetOptions.merge() to update the document if it exists or create it if it doesn't
-            db.collection("attendRecord")
-                    .document(userId + "_" + className)
-                    .set(attendanceRecord, SetOptions.merge())
-                    .addOnSuccessListener(aVoid -> {
-                        Log.d(TAG, "Time in recorded successfully!");
-                        // Show the popup when time in is recorded successfully
-                        showPopup();
+                            // Step 2: Check if class is ongoing
+                            Boolean ongoing = classDocument.getBoolean("Ongoing");
+                            if (ongoing == null || !ongoing) {
+                                // Class is not ongoing, allow the faculty to time in and set ongoing to true
+                                // Create a map to hold the attendance data
+                                Map<String, Object> attendanceRecord = new HashMap<>();
+                                attendanceRecord.put("userId", userId);
+                                attendanceRecord.put("message", message);
+                                attendanceRecord.put("status", "On-Time");
+                                attendanceRecord.put("timeIn", timestamp);
+                                attendanceRecord.put("className", className);
+
+                                // Step 3: Update the class document to set ongoing to true
+                                Map<String, Object> classUpdate = new HashMap<>();
+                                classUpdate.put("Ongoing", true);
+
+                                db.collection("classes")
+                                        .document(classId)
+                                        .set(classUpdate, SetOptions.merge())
+                                        .addOnSuccessListener(aVoid -> {
+                                            // Record the attendance
+                                            db.collection("attendRecord")
+                                                    .document(userId + "_" + className)
+                                                    .set(attendanceRecord, SetOptions.merge())
+                                                    .addOnSuccessListener(aVoid2 -> {
+                                                        Log.d(TAG, "Time in recorded successfully!");
+                                                        // Show the popup when time in is recorded successfully
+                                                        showPopup();
+                                                    })
+                                                    .addOnFailureListener(e -> {
+                                                        Log.e(TAG, "Error recording time in", e);
+                                                        // Handle error
+                                                    });
+                                        })
+                                        .addOnFailureListener(e -> {
+                                            Log.e(TAG, "Error updating class document", e);
+                                            // Handle error
+                                        });
+                            } else {
+                                // Class is already ongoing, handle this case (e.g., show an error message)
+                                Log.e(TAG, "Class is already ongoing");
+                            }
+                        } else {
+                            // Handle the case where the class document was not found
+                            Log.e(TAG, "Class document not found");
+                        }
                     })
                     .addOnFailureListener(e -> {
-                        Log.e(TAG, "Error recording time in", e);
+                        Log.e(TAG, "Error fetching class document", e);
+                        // Handle error
+                    });
+        } else {
+            Log.e(TAG, "User not authenticated");
+            // Handle authentication error
+        }
+    }
+
+    private void timeOut() {
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser != null) {
+            String userId = currentUser.getUid();
+            String className = mParam1; // Assuming you have the class name available
+            Date timestamp = new Date(); // Get current timestamp
+
+            FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+            // Step 1: Fetch the class ID using the class code
+            db.collection("classes")
+                    .whereEqualTo("classCode", className)
+                    .get()
+                    .addOnSuccessListener(queryDocumentSnapshots -> {
+                        if (!queryDocumentSnapshots.isEmpty()) {
+                            // Assuming classCode is unique and we get only one document
+                            QueryDocumentSnapshot classDocument = (QueryDocumentSnapshot) queryDocumentSnapshots.getDocuments().get(0);
+                            String classId = classDocument.getId();
+
+                            // Step 2: Update the class document to set ongoing to false
+                            Map<String, Object> classUpdate = new HashMap<>();
+                            classUpdate.put("Ongoing", false);
+
+                            db.collection("classes")
+                                    .document(classId)
+                                    .set(classUpdate, SetOptions.merge())
+                                    .addOnSuccessListener(aVoid -> {
+                                        // Optionally, record the time out if needed
+                                        Map<String, Object> attendanceUpdate = new HashMap<>();
+                                        attendanceUpdate.put("timeOut", timestamp);
+
+                                        db.collection("attendRecord")
+                                                .document(userId + "_" + className)
+                                                .set(attendanceUpdate, SetOptions.merge())
+                                                .addOnSuccessListener(aVoid2 -> {
+                                                    Log.d(TAG, "Time out recorded successfully!");
+                                                    // Handle successful time out, e.g., navigate to another fragment
+                                                })
+                                                .addOnFailureListener(e -> {
+                                                    Log.e(TAG, "Error recording time out", e);
+                                                    // Handle error
+                                                });
+                                    })
+                                    .addOnFailureListener(e -> {
+                                        Log.e(TAG, "Error updating class document", e);
+                                        // Handle error
+                                    });
+                        } else {
+                            // Handle the case where the class document was not found
+                            Log.e(TAG, "Class document not found");
+                        }
+                    })
+                    .addOnFailureListener(e -> {
+                        Log.e(TAG, "Error fetching class document", e);
                         // Handle error
                     });
         } else {

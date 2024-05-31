@@ -22,7 +22,6 @@ import androidx.fragment.app.FragmentTransaction;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.SetOptions;
@@ -178,30 +177,59 @@ public class FacultyScheduleTimeout extends Fragment {
         if (currentUser != null) {
             String userId = currentUser.getUid();
             String className = mParam1; // Assuming you have the class name available
-            String time = mParam2; // Assuming you have the class time available
             Date timestamp = new Date(); // Get current timestamp
 
             FirebaseFirestore db = FirebaseFirestore.getInstance();
 
-            // Create a map to hold the time out data
-            Map<String, Object> timeoutData = new HashMap<>();
-            timeoutData.put("timeOut", timestamp);
+            // Step 1: Fetch the class ID using the class code
+            db.collection("classes")
+                    .whereEqualTo("classCode", className)
+                    .get()
+                    .addOnSuccessListener(queryDocumentSnapshots -> {
+                        if (!queryDocumentSnapshots.isEmpty()) {
+                            // Assuming classCode is unique and we get only one document
+                            QueryDocumentSnapshot classDocument = (QueryDocumentSnapshot) queryDocumentSnapshots.getDocuments().get(0);
+                            String classId = classDocument.getId();
 
-            // Use set with SetOptions.merge() to update the document with time out
-            db.collection("attendRecord")
-                    .document(userId + "_" + className)
-                    .set(timeoutData, SetOptions.merge())
-                    .addOnSuccessListener(aVoid -> {
-                        Log.d(TAG, "Time out recorded successfully!");
-                        showTimeoutPopup();
+                            // Step 2: Update the class document to set ongoing to false
+                            Map<String, Object> classUpdate = new HashMap<>();
+                            classUpdate.put("Ongoing", false);
+
+                            db.collection("classes")
+                                    .document(classId)
+                                    .set(classUpdate, SetOptions.merge())
+                                    .addOnSuccessListener(aVoid -> {
+                                        // Optionally, record the time out if needed
+                                        Map<String, Object> attendanceUpdate = new HashMap<>();
+                                        attendanceUpdate.put("timeOut", timestamp);
+
+                                        db.collection("attendRecord")
+                                                .document(userId + "_" + className)
+                                                .set(attendanceUpdate, SetOptions.merge())
+                                                .addOnSuccessListener(aVoid2 -> {
+                                                    Log.d(TAG, "Time out recorded successfully!");
+                                                    showTimeoutPopup();
+                                                })
+                                                .addOnFailureListener(e -> {
+                                                    Log.e(TAG, "Error recording time out", e);
+                                                });
+                                    })
+                                    .addOnFailureListener(e -> {
+                                        Log.e(TAG, "Error updating class document", e);
+                                    });
+                        } else {
+                            // Handle the case where the class document was not found
+                            Log.e(TAG, "Class document not found");
+                        }
                     })
                     .addOnFailureListener(e -> {
-                        Log.e(TAG, "Error recording time out", e);
+                        Log.e(TAG, "Error fetching class document", e);
                     });
         } else {
             Log.e(TAG, "User not authenticated");
         }
     }
+
 
     private void showTimeoutPopup() {
         // Inflate the layout for the popup
