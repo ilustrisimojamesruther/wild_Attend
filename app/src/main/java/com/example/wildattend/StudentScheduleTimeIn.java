@@ -1,7 +1,9 @@
 package com.example.wildattend;
 
+import android.content.res.ColorStateList;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
@@ -45,6 +47,7 @@ public class StudentScheduleTimeIn extends Fragment {
     private static final String ARG_PARAM3 = "param3";
     private static final String ARG_PARAM4 = "param4";
     private static final String ARG_PARAM5 = "param5";
+    private static final String ARG_PARAM6 = "param6";
     private static final String TAG = "StudentScheduleTimeIn";
 
     private String mParam1;
@@ -52,6 +55,7 @@ public class StudentScheduleTimeIn extends Fragment {
     private String mParam3;
     private String mParam4;
     private String mParam5;
+    private String mParam6;
 
     private TextView studentNameTextView;
     private TextView idNumberTextView;
@@ -61,7 +65,7 @@ public class StudentScheduleTimeIn extends Fragment {
         // Required empty public constructor
     }
 
-    public static StudentScheduleTimeIn newInstance(String param1, String param2, String param3, String param4, String param5) {
+    public static StudentScheduleTimeIn newInstance(String param1, String param2, String param3, String param4, String param5, String param6) {
         StudentScheduleTimeIn fragment = new StudentScheduleTimeIn();
         Bundle args = new Bundle();
         args.putString(ARG_PARAM1, param1);
@@ -69,6 +73,7 @@ public class StudentScheduleTimeIn extends Fragment {
         args.putString(ARG_PARAM3, param3);
         args.putString(ARG_PARAM4, param4);
         args.putString(ARG_PARAM5, param5);
+        args.putString(ARG_PARAM6, param6);
         fragment.setArguments(args);
         return fragment;
     }
@@ -82,6 +87,7 @@ public class StudentScheduleTimeIn extends Fragment {
             mParam3 = getArguments().getString(ARG_PARAM3);
             mParam4 = getArguments().getString(ARG_PARAM4);
             mParam5 = getArguments().getString(ARG_PARAM5);
+            mParam6 = getArguments().getString(ARG_PARAM6);
         }
     }
 
@@ -95,6 +101,7 @@ public class StudentScheduleTimeIn extends Fragment {
         TextView timeDisplayTextView = view.findViewById(R.id.timeDisplay);
         TextView classNameTextView = view.findViewById(R.id.className);
         TextView roomLocationTextView = view.findViewById(R.id.roomLocation);
+        View classColorCircle = view.findViewById(R.id.classColorCircle);
 
         if (mParam1 != null) {
             classCodeTextView.setText(mParam1);
@@ -108,6 +115,13 @@ public class StudentScheduleTimeIn extends Fragment {
         }
         if (mParam5 != null) {
             roomLocationTextView.setText(mParam5);
+        }
+        if (mParam6 != null) {
+            int classColor = Color.parseColor(mParam6);
+            classColorCircle.setBackgroundColor(classColor);
+            classColorCircle.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor(mParam6)));
+            classColorCircle.setBackground(getResources().getDrawable(R.drawable.circle_background));
+
         }
 
         Button timeInButton = view.findViewById(R.id.timeInButton);
@@ -168,8 +182,11 @@ public class StudentScheduleTimeIn extends Fragment {
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
         if (currentUser != null) {
             String userId = currentUser.getUid();
-            String classCode = getArguments().getString(ARG_PARAM1); // Retrieve class code from arguments
-            String time = getArguments().getString(ARG_PARAM2); // Retrieve class time from arguments
+            String classCode = mParam1; // Retrieve class code from arguments
+            String roomLocation = mParam5;
+            String classDesc = mParam4;
+            String startTime = mParam2; // Retrieve class time from arguments
+            String endTime = mParam3;
             String message = "I'm here on time"; // Default message, you can customize this
             Date timestamp = new Date(); // Get current timestamp
 
@@ -267,7 +284,7 @@ public class StudentScheduleTimeIn extends Fragment {
 
     private void navigateToStudentScheduleTimeout() {
         // Create instance of StudentScheduleTimeout fragment
-        StudentScheduleTimeout studentScheduleTimeoutFragment = StudentScheduleTimeout.newInstance(mParam1, mParam2, mParam3, mParam4, mParam5);
+        StudentScheduleTimeout studentScheduleTimeoutFragment = StudentScheduleTimeout.newInstance(mParam1, mParam2, mParam3, mParam4, mParam5, mParam6);
 
         // Navigate to the StudentScheduleTimeout fragment
         FragmentTransaction transaction = getParentFragmentManager().beginTransaction();

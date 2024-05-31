@@ -84,13 +84,20 @@
             android:textStyle="bold"
             android:layout_gravity="end|top" />
 
+        <View
+            android:id="@+id/classColorCircle"
+            android:layout_width="74dp"
+            android:layout_height="74dp"
+            android:layout_marginTop="20dp"
+            android:layout_gravity="center_horizontal"
+            android:background="@drawable/circle_background" />
+
         <!-- MaterialTextView (Centered) -->
         <com.google.android.material.textview.MaterialTextView
             android:id="@+id/classCode"
             android:layout_width="74dp"
             android:layout_height="74dp"
             android:layout_gravity="center_horizontal"
-            android:background="@drawable/circle_background"
             android:gravity="center"
             android:text="ABC"
             android:textColor="@android:color/white"

@@ -157,14 +157,14 @@ public class StudentSchedule extends Fragment {
             ClassItem selectedItem = (ClassItem) parent.getItemAtPosition(position);
             if (selectedItem != null) {
                 // Pass both class code and formatted start time
-                navigateToClassSchedule(selectedItem.getClassCode(), selectedItem.getStartTime(), selectedItem.getEndTime(), selectedItem.getClassDesc(), selectedItem.getClassRoom());
+                navigateToClassSchedule(selectedItem.getClassCode(), selectedItem.getStartTime(), selectedItem.getEndTime(), selectedItem.getClassDesc(), selectedItem.getClassRoom(), selectedItem.getClassColor());
             }
         });
     }
 
-    private void navigateToClassSchedule(String classCode, String startTime, String endTime, String classDesc, String classRoom) {
+    private void navigateToClassSchedule(String classCode, String startTime, String endTime, String classDesc, String classRoom, String classColor) {
         // Create instance of StudentScheduleTimeIn fragment and pass class code and time as arguments
-        StudentScheduleTimeIn studentScheduleClassFragment = StudentScheduleTimeIn.newInstance(classCode, startTime, endTime, classDesc, classRoom);
+        StudentScheduleTimeIn studentScheduleClassFragment = StudentScheduleTimeIn.newInstance(classCode, startTime, endTime, classDesc, classRoom, classColor);
 
         // Navigate to the StudentScheduleTimeIn fragment
         getParentFragmentManager().beginTransaction()
