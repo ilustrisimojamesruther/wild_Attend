@@ -1,4 +1,5 @@
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/sChangePass"
@@ -7,22 +8,25 @@
     android:background="@drawable/background_dashboard"
     tools:context=".StudentOverAllAttendance">
 
+    <!-- Profile Picture -->
     <ImageView
         android:id="@+id/profilepicture"
-        android:layout_width="220dp"
-        android:layout_height="130dp"
-        android:layout_marginTop="50dp"
+        android:layout_width="150dp"
+        android:layout_height="150dp"
+        android:layout_marginTop="60dp"
+        android:src="@drawable/ic_launcher_background"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.497"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <!-- Faculty Name -->
     <TextView
         android:id="@+id/studentname"
         android:layout_width="220dp"
         android:layout_height="50dp"
         android:layout_marginTop="22dp"
         android:text=""
+        android:textAlignment="center"
         android:textColor="@color/black"
         android:textSize="22sp"
         app:layout_constraintEnd_toEndOf="parent"
@@ -30,41 +34,73 @@
         app:layout_constraintTop_toBottomOf="@+id/profilepicture"
         tools:ignore="TextSizeCheck" />
 
+    <!-- Search View -->
 
-    <ListView
-        android:id="@+id/list_view_attendance"
-        android:layout_width="341dp"
-        android:layout_height="360dp"
-        android:layout_marginBottom="120dp"
-        android:divider="@android:color/transparent"
-        android:dividerHeight="24sp"
-        app:layout_constraintBottom_toBottomOf="parent"
+    <!-- Attendance Table -->
+
+    <SearchView
+        android:id="@+id/studentsearchView"
+        android:layout_width="409dp"
+        android:layout_height="45dp"
+        android:layout_marginTop="20dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/studentname" />
+
+    <TableLayout
+        android:id="@+id/student_attendanceTable"
+        android:layout_width="412dp"
+        android:layout_height="310dp"
+        android:layout_marginTop="8dp"
+        android:background="@drawable/table_border"
+        android:padding="4dp"
+        android:stretchColumns="*"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintVertical_bias="0.466"
-        tools:listitem="@layout/list_student_attendance" />
+        app:layout_constraintTop_toBottomOf="@+id/studentsearchView" />
 
+    <!-- Pagination Buttons -->
 
-    <Button
-        android:id="@+id/facultyExport"
-        android:layout_width="250dp"
+    <!-- Back Button -->
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:layout_marginBottom="60dp"
-        android:backgroundTint="@color/maroon"
-        android:text="Export Attendance"
+        android:layout_marginTop="4dp"
+        android:gravity="center"
+        android:orientation="horizontal"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.496"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/student_attendanceTable"
+        app:layout_constraintVertical_bias="0.0">
 
-    <ImageButton
+        <Button
+            android:id="@+id/prevPageButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:enabled="false"
+            android:text="Previous"
+            android:textColor="@color/maroon" />
+
+        <Button
+            android:id="@+id/nextPageButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:backgroundTint="@color/maroon"
+            android:text="Next"
+            android:textColor="@color/gold" />
+    </LinearLayout>
+
+    <ImageView
         android:id="@+id/backButtonChangePassword"
-        android:layout_width="18dp"
-        android:layout_height="18dp"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="16dp"
-        android:background="?attr/selectableItemBackgroundBorderless"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="20dp"
+        android:contentDescription="Back"
         android:src="@drawable/baseline_arrow_back_24"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
