@@ -76,5 +76,11 @@
     <string name="continue_button">Continue</string>
     <string name="close_button">Close</string>
 
+    <string-array name="sort_options">
+        <item>A-Z</item>
+        <item>Time</item>
+        <item>Day</item>
+    </string-array>
+
 
 </resources>

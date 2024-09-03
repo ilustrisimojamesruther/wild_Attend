@@ -12,6 +12,7 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class ClassItemAdapter extends ArrayAdapter<ClassItem> {
@@ -72,4 +73,24 @@ public class ClassItemAdapter extends ArrayAdapter<ClassItem> {
 
         return circle;
     }
+
+    public void filter(String query) {
+        List<ClassItem> filteredList = new ArrayList<>();
+        if (query == null || query.isEmpty()) {
+            filteredList.addAll(scheduleItems); // If query is empty, show the full list
+        } else {
+            String lowerCaseQuery = query.toLowerCase();
+            for (ClassItem item : scheduleItems) {
+                if (item.getClassDesc().toLowerCase().contains(lowerCaseQuery) ||
+                        item.getClassCode().toLowerCase().contains(lowerCaseQuery) ||
+                        item.getStartTime().toLowerCase().contains(lowerCaseQuery)) {
+                    filteredList.add(item);
+                }
+            }
+        }
+        clear();
+        addAll(filteredList);
+        notifyDataSetChanged();
+    }
+
 }

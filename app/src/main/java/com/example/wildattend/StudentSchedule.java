@@ -127,7 +127,29 @@ public class StudentSchedule extends Fragment {
                         String classColor = documentSnapshot.getString("classColor");
                         String classRoom = documentSnapshot.getString("classRoom");
 
-                        ClassItem item = new ClassItem(classCode, classDesc, formattedStartTime, formattedEndTime, classColor, classRoom);
+                        // Fetch day booleans with null checks using temporary variables
+                        Boolean mondayObj = documentSnapshot.getBoolean("Monday");
+                        boolean monday = mondayObj != null && mondayObj;
+
+                        Boolean tuesdayObj = documentSnapshot.getBoolean("Tuesday");
+                        boolean tuesday = tuesdayObj != null && tuesdayObj;
+
+                        Boolean wednesdayObj = documentSnapshot.getBoolean("Wednesday");
+                        boolean wednesday = wednesdayObj != null && wednesdayObj;
+
+                        Boolean thursdayObj = documentSnapshot.getBoolean("Thursday");
+                        boolean thursday = thursdayObj != null && thursdayObj;
+
+                        Boolean fridayObj = documentSnapshot.getBoolean("Friday");
+                        boolean friday = fridayObj != null && fridayObj;
+
+                        Boolean saturdayObj = documentSnapshot.getBoolean("Saturday");
+                        boolean saturday = saturdayObj != null && saturdayObj;
+
+                        Boolean sundayObj = documentSnapshot.getBoolean("Sunday");
+                        boolean sunday = sundayObj != null && sundayObj;
+
+                        ClassItem item = new ClassItem(classCode, classDesc, formattedStartTime, formattedEndTime, classColor, classRoom, monday, tuesday, wednesday, thursday, friday, saturday, sunday);
                         scheduleItems.add(item);
                         adapter.notifyDataSetChanged();
                     } else {
