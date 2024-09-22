@@ -6,6 +6,7 @@
     android:layout_height="match_parent"
     tools:context=".StudentHome">
 
+
     <FrameLayout
         android:id="@+id/topFrameLayout"
         android:layout_width="0dp"
@@ -49,6 +50,7 @@
             android:layout_marginTop="40dp"
             app:shapeAppearanceOverlay="@style/circleImageView" />
     </FrameLayout>
+
 
     <!-- First FrameLayout (top-left) -->
     <FrameLayout
@@ -164,10 +166,78 @@
         app:layout_constraintTop_toBottomOf="@id/frame1"
         app:layout_constraintStart_toStartOf="parent">
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="asd"/>
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:app="http://schemas.android.com/apk/res-auto"
+            xmlns:tools="http://schemas.android.com/tools"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            tools:context=".YourActivity">
+
+            <!-- Container for ProgressBar and TextViews -->
+            <FrameLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintHorizontal_bias="0.5"
+                app:layout_constraintVertical_bias="0.6">
+
+                <!-- Attendance Icon -->
+                <com.example.wildattend.StudentProgressBar
+                    android:id="@+id/studentProgressBar"
+                    android:layout_width="100dp"
+                    android:layout_height="100dp"
+                    android:layout_gravity="center"/>
+
+                <!-- Percentage TextView -->
+                <TextView
+                    android:id="@+id/percentageText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="0%"
+                    android:textStyle="bold"
+                    android:textSize="15sp"
+                    android:textColor="@color/black"
+                    android:layout_gravity="center"
+                    android:layout_marginTop="-10dp"/>
+
+                <!-- Attendance TextView -->
+                <TextView
+                    android:id="@+id/attendanceText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Attendance"
+                    android:textStyle="bold"
+                    android:textSize="15sp"
+                    android:textColor="@color/black"
+                    android:layout_gravity="center"
+                    android:layout_marginTop="10dp"/>
+            </FrameLayout>
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+        <!-- Attendance TextView -->
+<!--            <TextView-->
+<!--                android:id="@+id/attendanceText"-->
+<!--                android:layout_width="wrap_content"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:layout_marginStart="16dp"-->
+<!--                android:layout_marginTop="16dp"-->
+<!--                android:text="Attendance"-->
+<!--                android:textColor="@color/black"-->
+<!--                android:textSize="16sp"-->
+<!--                app:layout_constraintStart_toStartOf="parent"-->
+<!--                app:layout_constraintTop_toTopOf="parent" />-->
+
+
+
+
+
     </FrameLayout>
 
     <!-- Third FrameLayout (bottom-left) -->
@@ -318,5 +388,6 @@
         </RelativeLayout>
 
     </androidx.cardview.widget.CardView>
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>

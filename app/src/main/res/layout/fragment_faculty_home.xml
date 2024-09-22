@@ -299,26 +299,55 @@
                 android:id="@+id/attendanceText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="16dp"
                 android:text="Attendance"
                 android:textColor="@color/black"
                 android:textSize="16sp"
-                android:layout_marginTop="16dp"
-                android:layout_marginStart="16dp"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
 
 
             <!-- Attendance Icon -->
+            <com.example.wildattend.FacultyProgressBar
+                android:id="@+id/facultyProgressBar"
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:layout_marginStart="50dp"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/attendanceText"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintHorizontal_bias="0.5"
+                app:layout_constraintVertical_bias="0.8" />
+
+            <!-- Percentage TextView -->
+            <TextView
+                android:id="@+id/percentageText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0%"
+                android:textStyle="bold"
+                android:textSize="15sp"
+                android:textColor="@color/black"
+                android:layout_centerInParent="true"
+                app:layout_constraintTop_toTopOf="@id/facultyProgressBar"
+                app:layout_constraintBottom_toBottomOf="@id/facultyProgressBar"
+                app:layout_constraintStart_toStartOf="@id/facultyProgressBar"
+                app:layout_constraintEnd_toEndOf="@id/facultyProgressBar" />
+
             <ImageView
                 android:id="@+id/attendanceIcon"
                 android:layout_width="30dp"
                 android:layout_height="30dp"
-                android:src="@drawable/icon_attendance"
+                android:layout_gravity="end"
                 android:layout_marginTop="16dp"
                 android:layout_marginEnd="16dp"
-                android:layout_gravity="end"
+                android:src="@drawable/icon_attendance"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="parent"/>
+                app:layout_constraintTop_toTopOf="parent" />
         </androidx.constraintlayout.widget.ConstraintLayout>
 
 

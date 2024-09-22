@@ -48,6 +48,10 @@ public class StudentHome extends Fragment {
 
     private int totalClasses = 0; // Variable to hold the total number of classes
 
+    private StudentProgressBar studentProgressBar;
+
+    private TextView percentageText;
+
     public StudentHome() {
         // Required empty public constructor
     }
@@ -60,10 +64,16 @@ public class StudentHome extends Fragment {
         profile_image = rootView.findViewById(R.id.profile_image_student);
         listView = rootView.findViewById(R.id.list_view_schedule);
         classesValue = rootView.findViewById(R.id.classesValue);
+        studentProgressBar = rootView.findViewById(R.id.studentProgressBar);
+        percentageText = rootView.findViewById(R.id.percentageText);
 
         scheduleItems = new ArrayList<>();
         adapter = new ClassItemAdapter(requireContext(), scheduleItems, R.layout.list_next_class, false);
         listView.setAdapter(adapter);
+
+        int progress = 46; // Example progress value
+        studentProgressBar.setProgress(progress);
+        percentageText.setText(progress + "%");
 
         // Set the current date
         TextView dateTextView = rootView.findViewById(R.id.date);

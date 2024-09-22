@@ -44,6 +44,10 @@ public class FacultyHome extends Fragment {
     private TextView facultyNameTextView;
     private ImageView profile_image;
 
+    private FacultyProgressBar facultyProgressBar;
+
+    private TextView percentageText;
+
     public FacultyHome() {
         // Required empty public constructor
     }
@@ -60,6 +64,14 @@ public class FacultyHome extends Fragment {
         facultyNameTextView = rootView.findViewById(R.id.home_header);
         profile_image = rootView.findViewById(R.id.profile_image_faculty);
         attendanceLogListView = rootView.findViewById(R.id.attendanceLogListView);
+        facultyProgressBar = rootView.findViewById(R.id.facultyProgressBar);
+        percentageText = rootView.findViewById(R.id.percentageText);
+
+//        facultyProgressBar.setProgress(25);  // Set the progress dynamically
+
+        int progress = 80; // Example progress value
+        facultyProgressBar.setProgress(progress);
+        percentageText.setText(progress + "%");
 
         // Set the current date
         TextView dateTextView = rootView.findViewById(R.id.date);
