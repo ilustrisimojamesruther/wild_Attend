@@ -17,6 +17,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.widget.AppCompatButton;
 import androidx.fragment.app.Fragment;
@@ -24,6 +25,7 @@ import androidx.fragment.app.FragmentTransaction;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.SetOptions;
@@ -33,8 +35,11 @@ import java.io.InputStream;
 import java.lang.ref.WeakReference;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 public class FacultyScheduleTimeIn extends Fragment {
@@ -179,82 +184,121 @@ public class FacultyScheduleTimeIn extends Fragment {
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
         if (currentUser != null) {
             String userId = currentUser.getUid();
-            String className = mParam1; // Assuming you have the class name available
-            String roomLocation = mParam5;
-            String classDesc = mParam4;
-            String startTime = mParam2;
-            String endTime = mParam3;
-            String message = "I'm here on time"; // Default message, you can customize this
-            Date timestamp = new Date(); // Get current timestamp
+            String className = mParam1; // Class name
+            String startTime = mParam2; // Start time in "HH:mm"
+            String endTime = mParam3; // End time in "HH:mm"
+            String message = "I'm here on time"; // Default message
+            Date timestamp = new Date(); // Current timestamp
 
-            FirebaseFirestore db = FirebaseFirestore.getInstance();
+            // Parse the start and end times
+            SimpleDateFormat fullDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault());
+            SimpleDateFormat timeFormat12Hour = new SimpleDateFormat("hh:mm a", Locale.getDefault()); // 12-hour format
 
-            // Step 1: Fetch the class ID using the class code
-            db.collection("classes")
-                    .whereEqualTo("classCode", className)
-                    .get()
-                    .addOnSuccessListener(queryDocumentSnapshots -> {
-                        if (!queryDocumentSnapshots.isEmpty()) {
-                            // Assuming classCode is unique and we get only one document
-                            QueryDocumentSnapshot classDocument = (QueryDocumentSnapshot) queryDocumentSnapshots.getDocuments().get(0);
-                            String classId = classDocument.getId();
+            try {
+                // Get the current date (for full date comparisons)
+                String today = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
 
-                            // Step 2: Check if class is ongoing
-                            Boolean ongoing = classDocument.getBoolean("Ongoing");
-                            if (ongoing == null || !ongoing) {
-                                // Class is not ongoing, allow the faculty to time in and set ongoing to true
-                                // Create a map to hold the attendance data
-                                Map<String, Object> attendanceRecord = new HashMap<>();
-                                attendanceRecord.put("userId", userId);
-                                attendanceRecord.put("message", message);
-                                attendanceRecord.put("status", "On-Time");
-                                attendanceRecord.put("timeIn", timestamp);
-                                attendanceRecord.put("className", className);
+                // Combine the current date with start time for full comparison
+                Date startDate = fullDateFormat.parse(today + " " + startTime); // Full start time
+                Date endDate;
 
-                                // Step 3: Update the class document to set ongoing to true
-                                Map<String, Object> classUpdate = new HashMap<>();
-                                classUpdate.put("Ongoing", true);
+                // Adjust end time if it is "00:00" to represent midnight of the next day
+                if (endTime.equals("00:00") || endTime.equals("12:00 AM")) {
+                    endDate = fullDateFormat.parse(today + " 00:00");
+                    endDate.setTime(endDate.getTime() + 24 * 60 * 60 * 1000); // Add one day
+                } else {
+                    endDate = fullDateFormat.parse(today + " " + endTime); // Full end time
+                }
 
-                                db.collection("classes")
-                                        .document(classId)
-                                        .set(classUpdate, SetOptions.merge())
-                                        .addOnSuccessListener(aVoid -> {
-                                            // Record the attendance
-                                            db.collection("attendRecord")
-                                                    .document(userId + "_" + className)
-                                                    .set(attendanceRecord, SetOptions.merge())
-                                                    .addOnSuccessListener(aVoid2 -> {
-                                                        Log.d(TAG, "Time in recorded successfully!");
-                                                        // Show the popup when time in is recorded successfully
-                                                        showPopup();
-                                                    })
-                                                    .addOnFailureListener(e -> {
-                                                        Log.e(TAG, "Error recording time in", e);
-                                                        // Handle error
-                                                    });
-                                        })
-                                        .addOnFailureListener(e -> {
-                                            Log.e(TAG, "Error updating class document", e);
-                                            // Handle error
-                                        });
-                            } else {
-                                // Class is already ongoing, handle this case (e.g., show an error message)
-                                Log.e(TAG, "Class is already ongoing");
-                            }
-                        } else {
-                            // Handle the case where the class document was not found
-                            Log.e(TAG, "Class document not found");
-                        }
-                    })
-                    .addOnFailureListener(e -> {
-                        Log.e(TAG, "Error fetching class document", e);
-                        // Handle error
-                    });
+                // Current time
+                Date currentTime = new Date();
+
+                // Calculate the early time (15 minutes before start time)
+                Date fifteenMinutesEarly = new Date(startDate.getTime() - 15 * 60 * 1000);
+
+                // Log the times for debugging
+                Log.d(TAG, "Start time: " + timeFormat12Hour.format(startDate));
+                Log.d(TAG, "End time: " + timeFormat12Hour.format(endDate));
+                Log.d(TAG, "Fifteen minutes early: " + timeFormat12Hour.format(fifteenMinutesEarly));
+                Log.d(TAG, "Current time: " + timeFormat12Hour.format(currentTime));
+
+                // Ensure time-in is within the allowed window (15 minutes before start time to end time)
+                boolean canTimeIn = !currentTime.before(fifteenMinutesEarly) && !currentTime.after(endDate);
+
+                if (canTimeIn) {
+                    // Proceed with recording the time-in (same as before)
+                    FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+                    // Fetch the class ID using the class code
+                    db.collection("classes")
+                            .whereEqualTo("classCode", className)
+                            .get()
+                            .addOnSuccessListener(queryDocumentSnapshots -> {
+                                if (!queryDocumentSnapshots.isEmpty()) {
+                                    DocumentSnapshot classDocument = queryDocumentSnapshots.getDocuments().get(0);
+                                    String classId = classDocument.getId();
+
+                                    // Check if class is ongoing
+                                    Boolean ongoing = classDocument.getBoolean("Ongoing");
+                                    if (ongoing == null || !ongoing) {
+                                        // Class is not ongoing, allow the faculty to time in
+                                        Map<String, Object> attendanceRecord = new HashMap<>();
+                                        attendanceRecord.put("userId", userId);
+                                        attendanceRecord.put("message", message);
+                                        attendanceRecord.put("status", "On-Time");
+                                        attendanceRecord.put("timeIn", timestamp);
+                                        attendanceRecord.put("className", className);
+
+                                        // Update the class document to set ongoing to true
+                                        Map<String, Object> classUpdate = new HashMap<>();
+                                        classUpdate.put("Ongoing", true);
+
+                                        db.collection("classes")
+                                                .document(classId)
+                                                .set(classUpdate, SetOptions.merge())
+                                                .addOnSuccessListener(aVoid -> {
+                                                    // Record the attendance
+                                                    db.collection("attendRecord")
+                                                            .document(userId + "_" + className)
+                                                            .set(attendanceRecord, SetOptions.merge())
+                                                            .addOnSuccessListener(aVoid2 -> {
+                                                                Log.d(TAG, "Time in recorded successfully!");
+                                                                showPopup();
+                                                            })
+                                                            .addOnFailureListener(e -> {
+                                                                Log.e(TAG, "Error recording time in", e);
+                                                            });
+                                                })
+                                                .addOnFailureListener(e -> {
+                                                    Log.e(TAG, "Error updating class document", e);
+                                                });
+                                    } else {
+                                        Log.e(TAG, "Class is already ongoing");
+                                        Toast.makeText(getContext(), "Class is already ongoing", Toast.LENGTH_SHORT).show();
+                                    }
+                                } else {
+                                    Log.e(TAG, "Class document not found");
+                                    Toast.makeText(getContext(), "Class document not found", Toast.LENGTH_SHORT).show();
+                                }
+                            })
+                            .addOnFailureListener(e -> {
+                                Log.e(TAG, "Error fetching class document", e);
+                            });
+                } else {
+                    String errorMessage = "Time in is not allowed. Current time: " + timeFormat12Hour.format(currentTime);
+                    Log.e(TAG, errorMessage);
+                    Toast.makeText(getContext(), errorMessage, Toast.LENGTH_SHORT).show();
+                }
+
+            } catch (ParseException e) {
+                Log.e(TAG, "Error parsing time", e);
+            }
         } else {
             Log.e(TAG, "User not authenticated");
-            // Handle authentication error
+            Toast.makeText(getContext(), "User not authenticated", Toast.LENGTH_SHORT).show();
         }
     }
+
 
     private void timeOut() {
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
