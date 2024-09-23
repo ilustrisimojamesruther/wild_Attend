@@ -14,6 +14,7 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.PopupWindow;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.widget.AppCompatButton;
 import androidx.fragment.app.Fragment;
@@ -22,6 +23,7 @@ import androidx.fragment.app.FragmentTransaction;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.SetOptions;
@@ -180,30 +182,27 @@ public class StudentScheduleTimeout extends Fragment {
 
             FirebaseFirestore db = FirebaseFirestore.getInstance();
 
-            // Create a map to hold the time out data
-            Map<String, Object> timeoutData = new HashMap<>();
-            timeoutData.put("timeOut", timestamp);
-
-            // Fetch the class document first
+            // Fetch the teacher's timeout status
             db.collection("classes")
                     .whereEqualTo("classCode", classCode)
                     .get()
                     .addOnSuccessListener(queryDocumentSnapshots -> {
                         if (!queryDocumentSnapshots.isEmpty()) {
-                            // Assuming classCode is unique and we get only one document
-                            QueryDocumentSnapshot classDocument = (QueryDocumentSnapshot) queryDocumentSnapshots.getDocuments().get(0);
-                            String classId = classDocument.getId();
+                            DocumentSnapshot classDocument = queryDocumentSnapshots.getDocuments().get(0);
+                            String teacherId = classDocument.getString("teacherId"); // Assuming teacherId is stored here
 
-                            // Update the timeOut field in the attendance record
+                            // Check if the teacher has timed out
                             db.collection("attendRecord")
-                                    .document(userId + "_" + classId)
-                                    .set(timeoutData, SetOptions.merge())
-                                    .addOnSuccessListener(aVoid -> {
-                                        Log.d(TAG, "Time out recorded successfully!");
-                                        showTimeoutPopup();
-                                    })
-                                    .addOnFailureListener(e -> {
-                                        Log.e(TAG, "Error recording time out", e);
+                                    .document(teacherId + "_" + classDocument.getId())
+                                    .get()
+                                    .addOnSuccessListener(teacherDocument -> {
+                                        if (teacherDocument.exists() && teacherDocument.contains("timeOut")) {
+                                            // Teacher has timed out, now check the student's last time in
+                                            checkStudentTimeIn(userId, classCode, timestamp);
+                                        } else {
+                                            // Notify user that the teacher has not timed out yet
+                                            Toast.makeText(getContext(), "You cannot time out until the teacher has timed out.", Toast.LENGTH_LONG).show();
+                                        }
                                     });
                         } else {
                             Log.e(TAG, "Class document does not exist for class: " + classCode);
@@ -216,6 +215,74 @@ public class StudentScheduleTimeout extends Fragment {
             Log.e(TAG, "User not authenticated");
         }
     }
+
+    private void checkStudentTimeIn(String userId, String classCode, Date timestamp) {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+        // Fetch the last time in record for the student
+        db.collection("attendRecord")
+                .document(userId + "_" + classCode)
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        // Retrieve the last time in timestamp
+                        Date lastTimeIn = documentSnapshot.getDate("timeIn");
+                        if (lastTimeIn != null) {
+                            // Check the duration between last time in and current time out
+                            long duration = timestamp.getTime() - lastTimeIn.getTime();
+                            if (duration < 3600000) { // 1 hour in milliseconds
+                                // Notify user that they must wait at least 1 hour
+                                Toast.makeText(getContext(), "You need to wait at least 1 hour before timing out.", Toast.LENGTH_LONG).show();
+                                return; // Exit the method if the duration is less than 1 hour
+                            }
+
+                            // Proceed with timing out if both conditions are met
+                            recordTimeOut(userId, classCode, timestamp);
+                        }
+                    } else {
+                        Log.e(TAG, "No attendance record found for the user.");
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error fetching attendance record", e);
+                });
+    }
+
+    private void recordTimeOut(String userId, String classCode, Date timestamp) {
+        Map<String, Object> timeoutData = new HashMap<>();
+        timeoutData.put("timeOut", timestamp);
+
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+        // Fetch the class document again to get the class ID
+        db.collection("classes")
+                .whereEqualTo("classCode", classCode)
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    if (!queryDocumentSnapshots.isEmpty()) {
+                        DocumentSnapshot classDocument = queryDocumentSnapshots.getDocuments().get(0);
+                        String classId = classDocument.getId();
+
+                        // Update the timeOut field in the attendance record
+                        db.collection("attendRecord")
+                                .document(userId + "_" + classId)
+                                .set(timeoutData, SetOptions.merge())
+                                .addOnSuccessListener(aVoid -> {
+                                    Log.d(TAG, "Time out recorded successfully!");
+                                    showTimeoutPopup();
+                                })
+                                .addOnFailureListener(e -> {
+                                    Log.e(TAG, "Error recording time out", e);
+                                });
+                    } else {
+                        Log.e(TAG, "Class document does not exist for class: " + classCode);
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error fetching class document", e);
+                });
+    }
+
 
     private void showTimeoutPopup() {
         // Inflate the layout for the popup
