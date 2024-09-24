@@ -8,8 +8,13 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.SearchView;
+import android.widget.Spinner;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -43,6 +48,15 @@ public class StudentSchedule extends Fragment {
     private List<ClassItem> scheduleItems;
     private ClassItemAdapter adapter;
 
+    private int currentPage = 0;
+    private final int pageSize = 4; // Display 4 classes per page
+    private int totalPages = 0;
+    private List<ClassItem> allClasses = new ArrayList<>();
+    private Button prevPageButton, nextPageButton;
+    private SearchView searchView;
+    private List<ClassItem> filteredClasses = new ArrayList<>();
+    private Spinner sortSpinner;
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -52,13 +66,32 @@ public class StudentSchedule extends Fragment {
         idNumberTextView = rootView.findViewById(R.id.idNumber);
         listView = rootView.findViewById(R.id.list_view_schedule);
         profile_image = rootView.findViewById(R.id.profile_image_faculty);
+        prevPageButton = rootView.findViewById(R.id.prevButton);
+        nextPageButton = rootView.findViewById(R.id.nextButton);
+        searchView = rootView.findViewById(R.id.searchView);
+        sortSpinner = rootView.findViewById(R.id.sortSpinner);
+
+        sortSpinner.setPrompt("SORT BY");
+        prevPageButton.setOnClickListener(v -> onPrevPage());
+        nextPageButton.setOnClickListener(v -> onNextPage());
 
         scheduleItems = new ArrayList<>();
         adapter = new ClassItemAdapter(requireContext(), scheduleItems, R.layout.list_class_schedule, true);
         listView.setAdapter(adapter);
 
+        // Set up the ArrayAdapter for the Spinner
+        ArrayAdapter<CharSequence> spinnerAdapter = ArrayAdapter.createFromResource(
+                getContext(),
+                R.array.sort_options, // Array of sorting options
+                android.R.layout.simple_spinner_item // Layout for the spinner
+        );
+        spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        sortSpinner.setAdapter(spinnerAdapter);
+
         fetchUserInformation();
         setupListView();
+        setupSearchView();
+        setupSpinner();
 
         return rootView;
     }
@@ -149,9 +182,15 @@ public class StudentSchedule extends Fragment {
                         Boolean sundayObj = documentSnapshot.getBoolean("Sunday");
                         boolean sunday = sundayObj != null && sundayObj;
 
+//                        ClassItem item = new ClassItem(classCode, classDesc, formattedStartTime, formattedEndTime, classColor, classRoom, monday, tuesday, wednesday, thursday, friday, saturday, sunday);
+//                        scheduleItems.add(item);
+//                        adapter.notifyDataSetChanged();
+
                         ClassItem item = new ClassItem(classCode, classDesc, formattedStartTime, formattedEndTime, classColor, classRoom, monday, tuesday, wednesday, thursday, friday, saturday, sunday);
-                        scheduleItems.add(item);
-                        adapter.notifyDataSetChanged();
+                        allClasses.add(item);
+                        totalPages = (int) Math.ceil((double) allClasses.size() / pageSize);
+
+                        updateListView();
                     } else {
                         Log.e(TAG, "Class document does not exist");
                     }
@@ -175,13 +214,167 @@ public class StudentSchedule extends Fragment {
     }
 
     private void setupListView() {
+        listView.setAdapter(adapter);
+
+        // Set item click listener to navigate to class schedule
         listView.setOnItemClickListener((parent, view, position, id) -> {
             ClassItem selectedItem = (ClassItem) parent.getItemAtPosition(position);
             if (selectedItem != null) {
-                // Pass both class code and formatted start time
+                // Navigate to the detailed schedule of the selected class
                 navigateToClassSchedule(selectedItem.getClassCode(), selectedItem.getStartTime(), selectedItem.getEndTime(), selectedItem.getClassDesc(), selectedItem.getClassRoom(), selectedItem.getClassColor());
             }
         });
+    }
+
+    private void updateListView() {
+        scheduleItems.clear();
+
+        List<ClassItem> displayList = filteredClasses.isEmpty() ? allClasses : filteredClasses;
+
+        totalPages = (int) Math.ceil((double) displayList.size() / pageSize);
+
+        int start = currentPage * pageSize;
+        int end = Math.min(start + pageSize, displayList.size());
+
+        for (int i = start; i < end; i++) {
+            scheduleItems.add(displayList.get(i));
+        }
+
+        adapter.notifyDataSetChanged();
+
+        prevPageButton.setEnabled(currentPage > 0);
+        nextPageButton.setEnabled(currentPage < totalPages - 1);
+    }
+
+    private void onPrevPage() {
+        if (currentPage > 0) {
+            currentPage--;
+            updateListView();
+        }
+    }
+
+    private void onNextPage() {
+        if (currentPage < totalPages - 1) {
+            currentPage++;
+            updateListView();
+        }
+    }
+
+    private void setupSearchView() {
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                filterClass(query);
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                filterClass(newText);
+                return false;
+            }
+        });
+    }
+
+    private void filterClass(String query) {
+        filteredClasses.clear();
+        if (query.isEmpty()) {
+            filteredClasses.addAll(allClasses);
+        } else {
+            for (ClassItem item : allClasses) {
+                if (item.getClassCode().toLowerCase().contains(query.toLowerCase()) ||
+                        item.getClassDesc().toLowerCase().contains(query.toLowerCase())) {
+                    filteredClasses.add(item);
+                }
+            }
+        }
+        currentPage = 0; // Reset to first page
+        updateListView();
+    }
+
+    private void setupSpinner() {
+        sortSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                if (position == AdapterView.INVALID_POSITION) {
+                    return;
+                }
+
+                switch (position) {
+                    case 0: // Ascending
+                        sortByAscending();
+                        break;
+                    case 1: // Time
+                        sortByTime();
+                        break;
+                    case 2: // Day
+                        sortByDay();
+                        break;
+                    default:
+                        break;
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+            }
+        });
+
+        sortSpinner.setSelection(AdapterView.INVALID_POSITION);
+    }
+
+    private void sortByDay() {
+        List<ClassItem> listToSort = filteredClasses.isEmpty() ? allClasses : filteredClasses;
+
+        // Debugging: Log the days before sorting
+        for (ClassItem item : listToSort) {
+            Log.d(TAG, "Class: " + item.getClassCode() + ", Day: " + item.getDayOfWeek());
+        }
+
+        listToSort.sort((c1, c2) -> Integer.compare(c1.getDayOfWeek(), c2.getDayOfWeek()));
+
+        // Debugging: Log the days after sorting
+        for (ClassItem item : listToSort) {
+            Log.d(TAG, "Sorted Class: " + item.getClassCode() + ", Day: " + item.getDayOfWeek());
+        }
+
+        currentPage = 0; // Reset to the first page after sorting
+        updateListView();
+    }
+
+    private boolean getDayValue(ClassItem item, String day) {
+        switch (day) {
+            case "Monday": return item.isMonday();
+            case "Tuesday": return item.isTuesday();
+            case "Wednesday": return item.isWednesday();
+            case "Thursday": return item.isThursday();
+            case "Friday": return item.isFriday();
+            case "Saturday": return item.isSaturday();
+            case "Sunday": return item.isSunday();
+            default: return false;
+        }
+    }
+
+    private void sortByAscending() {
+        List<ClassItem> listToSort = filteredClasses.isEmpty() ? allClasses : filteredClasses;
+        listToSort.sort((c1, c2) -> c1.getClassDesc().compareToIgnoreCase(c2.getClassDesc()));
+        updateListView();
+    }
+
+    private void sortByTime() {
+        List<ClassItem> listToSort = filteredClasses.isEmpty() ? allClasses : filteredClasses;
+        listToSort.sort((c1, c2) -> {
+            SimpleDateFormat sdf = new SimpleDateFormat("h:mm a");
+            try {
+                Date time1 = sdf.parse(c1.getStartTime());
+                Date time2 = sdf.parse(c2.getStartTime());
+                return time1.compareTo(time2);
+            } catch (ParseException e) {
+                e.printStackTrace();
+                return 0;
+            }
+        });
+        updateListView();
     }
 
     private void navigateToClassSchedule(String classCode, String startTime, String endTime, String classDesc, String classRoom, String classColor) {

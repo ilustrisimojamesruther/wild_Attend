@@ -42,16 +42,40 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/facultyName" />
 
-    <TextView
-        android:id="@+id/classesTextView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:text="Today's Classes"
-        android:textSize="18sp"
-        android:textStyle="bold"
+<!--    <TextView-->
+<!--        android:id="@+id/classesTextView"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:layout_marginTop="10dp"-->
+<!--        android:text="Today's Classes"-->
+<!--        android:textSize="18sp"-->
+<!--        android:textStyle="bold"-->
+<!--        app:layout_constraintEnd_toEndOf="parent"-->
+<!--        app:layout_constraintStart_toStartOf="parent"-->
+<!--        app:layout_constraintTop_toBottomOf="@id/idNumber" />-->
+
+    <SearchView
+        android:id="@+id/searchView"
+        android:layout_width="220dp"
+        android:layout_height="48dp"
+        android:layout_marginTop="30dp"
+        android:queryHint="Search classes"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.170"
         app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/idNumber" />
+
+    <Spinner
+        android:id="@+id/sortSpinner"
+        android:layout_width="120dp"
+        android:layout_height="45dp"
+        android:layout_marginTop="32dp"
+        android:layout_marginRight="30dp"
+        android:entries="@array/sort_options"
+        android:hint="SORT BY"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toEndOf="@id/searchView"
         app:layout_constraintTop_toBottomOf="@id/idNumber" />
 
     <ListView
@@ -59,12 +83,36 @@
         android:layout_width="347dp"
         android:layout_height="355dp"
         android:divider="@android:color/transparent"
-        android:dividerHeight="24sp"
+        android:dividerHeight="10sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/classesTextView"
-        app:layout_constraintVertical_bias="0.466"
+        app:layout_constraintTop_toBottomOf="@id/searchView"
+        app:layout_constraintVertical_bias="0.266"
         tools:listitem="@layout/list_class_schedule" />
+
+    <Button
+        android:id="@+id/prevButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Previous"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/nextButton"
+        android:textColor="@color/maroon"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="parent"
+        android:enabled="false"/>
+
+    <Button
+        android:id="@+id/nextButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Next"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/prevButton"
+        android:backgroundTint="@color/maroon"
+        android:textColor="@color/gold"
+        android:enabled="false"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

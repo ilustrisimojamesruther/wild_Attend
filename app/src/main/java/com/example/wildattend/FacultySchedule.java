@@ -62,6 +62,7 @@ public class FacultySchedule extends Fragment {
     private Spinner sortSpinner;
 
 
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -346,8 +347,6 @@ public class FacultySchedule extends Fragment {
     }
 
 
-
-
     private boolean getDayValue(ClassItem item, String day) {
         switch (day) {
             case "Monday": return item.isMonday();
@@ -362,13 +361,9 @@ public class FacultySchedule extends Fragment {
     }
 
 
-
-
-
-
     private void sortByAscending() {
         List<ClassItem> listToSort = filteredClasses.isEmpty() ? allClasses : filteredClasses;
-        listToSort.sort((c1, c2) -> c1.getClassCode().compareToIgnoreCase(c2.getClassCode()));
+        listToSort.sort((c1, c2) -> c1.getClassDesc().compareToIgnoreCase(c2.getClassDesc()));
         updateListView();
     }
 
