@@ -37,10 +37,12 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Set;
 
 
 public class FacultySchedule extends Fragment {
@@ -152,7 +154,13 @@ public class FacultySchedule extends Fragment {
                 });
     }
 
+    private Set<String> classIdSet = new HashSet<>(); // Set to track unique class IDs
+
     private void fetchClassDetails(String classID) {
+        // Check if the class has already been added
+        if (classIdSet.contains(classID)) {
+            return; // Skip if already added
+        }
         FirebaseFirestore db = FirebaseFirestore.getInstance();
         db.collection("classes")
                 .document(classID)
@@ -191,6 +199,9 @@ public class FacultySchedule extends Fragment {
                         boolean sunday = sundayObj != null && sundayObj;
 
                         ClassItem item = new ClassItem(classCode, classDesc, formattedStartTime, formattedEndTime, classColor, classRoom, monday, tuesday, wednesday, thursday, friday, saturday, sunday);
+
+                        // Add the class ID to the set to track uniqueness
+                        classIdSet.add(classID);
                         allClasses.add(item);
                         totalPages = (int) Math.ceil((double) allClasses.size() / pageSize);
 
