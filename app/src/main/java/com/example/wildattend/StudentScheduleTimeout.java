@@ -197,8 +197,8 @@ public class StudentScheduleTimeout extends Fragment {
                                     .get()
                                     .addOnSuccessListener(teacherDocument -> {
                                         if (teacherDocument.exists() && teacherDocument.contains("timeOut")) {
-                                            // Teacher has timed out, now check the student's last time in
-                                            checkStudentTimeIn(userId, classCode, timestamp);
+                                            // Teacher has timed out, now proceed with timing out the student
+                                            recordTimeOut(userId, classCode, timestamp);
                                         } else {
                                             // Notify user that the teacher has not timed out yet
                                             Toast.makeText(getContext(), "You cannot time out until the teacher has timed out.", Toast.LENGTH_LONG).show();
@@ -216,41 +216,11 @@ public class StudentScheduleTimeout extends Fragment {
         }
     }
 
-    private void checkStudentTimeIn(String userId, String classCode, Date timestamp) {
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
-
-        // Fetch the last time in record for the student
-        db.collection("attendRecord")
-                .document(userId + "_" + classCode)
-                .get()
-                .addOnSuccessListener(documentSnapshot -> {
-                    if (documentSnapshot.exists()) {
-                        // Retrieve the last time in timestamp
-                        Date lastTimeIn = documentSnapshot.getDate("timeIn");
-                        if (lastTimeIn != null) {
-                            // Check the duration between last time in and current time out
-                            long duration = timestamp.getTime() - lastTimeIn.getTime();
-                            if (duration < 3600000) { // 1 hour in milliseconds
-                                // Notify user that they must wait at least 1 hour
-                                Toast.makeText(getContext(), "You need to wait at least 1 hour before timing out.", Toast.LENGTH_LONG).show();
-                                return; // Exit the method if the duration is less than 1 hour
-                            }
-
-                            // Proceed with timing out if both conditions are met
-                            recordTimeOut(userId, classCode, timestamp);
-                        }
-                    } else {
-                        Log.e(TAG, "No attendance record found for the user.");
-                    }
-                })
-                .addOnFailureListener(e -> {
-                    Log.e(TAG, "Error fetching attendance record", e);
-                });
-    }
 
     private void recordTimeOut(String userId, String classCode, Date timestamp) {
         Map<String, Object> timeoutData = new HashMap<>();
         timeoutData.put("timeOut", timestamp);
+        timeoutData.put("message", "N/A"); // Set the default message to N/A
 
         FirebaseFirestore db = FirebaseFirestore.getInstance();
 
@@ -268,7 +238,7 @@ public class StudentScheduleTimeout extends Fragment {
                                 .document(userId + "_" + classId)
                                 .set(timeoutData, SetOptions.merge())
                                 .addOnSuccessListener(aVoid -> {
-                                    Log.d(TAG, "Time out recorded successfully!");
+                                    Log.d(TAG, "Time out recorded successfully with message N/A!");
                                     showTimeoutPopup();
                                 })
                                 .addOnFailureListener(e -> {
@@ -282,6 +252,7 @@ public class StudentScheduleTimeout extends Fragment {
                     Log.e(TAG, "Error fetching class document", e);
                 });
     }
+
 
 
     private void showTimeoutPopup() {

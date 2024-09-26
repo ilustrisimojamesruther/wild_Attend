@@ -194,11 +194,16 @@ public class FacultyScheduleTimeout extends Fragment {
                             if (lastTimeIn != null) {
                                 // Step 2: Check the duration between last time in and current time out
                                 long duration = timestamp.getTime() - lastTimeIn.getTime();
+                                Log.d(TAG, "Duration between time in and time out: " + duration + " ms");
+
                                 if (duration < 3600000) { // 1 hour in milliseconds
                                     // Show error message
                                     Toast.makeText(getContext(), "You need to wait at least 1 hour before timing out.", Toast.LENGTH_LONG).show();
+                                    Log.d(TAG, "User attempted to time out before 1 hour elapsed.");
                                     return; // Exit the method if the duration is less than 1 hour
                                 }
+                            } else {
+                                Log.e(TAG, "Last time in timestamp is null.");
                             }
 
                             // Proceed with timing out if the duration is valid
@@ -215,6 +220,7 @@ public class FacultyScheduleTimeout extends Fragment {
             Log.e(TAG, "User not authenticated");
         }
     }
+
 
     private void fetchClassIdAndTimeout(String userId, String className, Date timestamp) {
         FirebaseFirestore db = FirebaseFirestore.getInstance();

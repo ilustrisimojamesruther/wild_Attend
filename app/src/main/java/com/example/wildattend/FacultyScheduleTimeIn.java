@@ -37,6 +37,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
@@ -185,48 +186,48 @@ public class FacultyScheduleTimeIn extends Fragment {
         if (currentUser != null) {
             String userId = currentUser.getUid();
             String className = mParam1; // Class name
-            String startTime = mParam2; // Start time in "HH:mm"
-            String endTime = mParam3; // End time in "HH:mm"
+            String startTime = mParam2; // Start time in "hh:mm a" format from Firebase
+            String endTime = mParam3; // End time in "hh:mm a" format from Firebase
             String message = "I'm here on time"; // Default message
             Date timestamp = new Date(); // Current timestamp
 
-            // Parse the start and end times
-            SimpleDateFormat fullDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault());
-            SimpleDateFormat timeFormat12Hour = new SimpleDateFormat("hh:mm a", Locale.getDefault()); // 12-hour format
+            // Set up date formats
+            SimpleDateFormat fullDateFormat12Hour = new SimpleDateFormat("yyyy-MM-dd hh:mm a", Locale.getDefault()); // For parsing 12-hour format with AM/PM
+            SimpleDateFormat timeFormat12Hour = new SimpleDateFormat("hh:mm a", Locale.getDefault()); // For logging 12-hour format with AM/PM
 
             try {
-                // Get the current date (for full date comparisons)
+                // Get today's date
                 String today = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
 
-                // Combine the current date with start time for full comparison
-                Date startDate = fullDateFormat.parse(today + " " + startTime); // Full start time
-                Date endDate;
+                // Combine today's date with start and end times for parsing (12-hour format with AM/PM)
+                Date startDate = fullDateFormat12Hour.parse(today + " " + startTime); // Full start time in 12-hour format
+                Date endDate = fullDateFormat12Hour.parse(today + " " + endTime); // Full end time in 12-hour format
 
-                // Adjust end time if it is "00:00" to represent midnight of the next day
-                if (endTime.equals("00:00") || endTime.equals("12:00 AM")) {
-                    endDate = fullDateFormat.parse(today + " 00:00");
-                    endDate.setTime(endDate.getTime() + 24 * 60 * 60 * 1000); // Add one day
-                } else {
-                    endDate = fullDateFormat.parse(today + " " + endTime); // Full end time
+                // Check if endDate is before startDate, which implies it goes to the next day
+                if (endDate.before(startDate)) {
+                    Calendar calendar = Calendar.getInstance();
+                    calendar.setTime(endDate);
+                    calendar.add(Calendar.DATE, 1); // Move endDate to the next day
+                    endDate = calendar.getTime();
                 }
 
                 // Current time
                 Date currentTime = new Date();
 
-                // Calculate the early time (15 minutes before start time)
+                // Calculate 15 minutes before start time
                 Date fifteenMinutesEarly = new Date(startDate.getTime() - 15 * 60 * 1000);
 
-                // Log the times for debugging
-                Log.d(TAG, "Start time: " + timeFormat12Hour.format(startDate));
-                Log.d(TAG, "End time: " + timeFormat12Hour.format(endDate));
+                // Log the times in 12-hour format with AM/PM
+                Log.d(TAG, "Start time (12-hour): " + timeFormat12Hour.format(startDate));
+                Log.d(TAG, "End time (12-hour): " + timeFormat12Hour.format(endDate));
                 Log.d(TAG, "Fifteen minutes early: " + timeFormat12Hour.format(fifteenMinutesEarly));
                 Log.d(TAG, "Current time: " + timeFormat12Hour.format(currentTime));
 
                 // Ensure time-in is within the allowed window (15 minutes before start time to end time)
-                boolean canTimeIn = !currentTime.before(fifteenMinutesEarly) && !currentTime.after(endDate);
+                boolean canTimeIn = currentTime.after(fifteenMinutesEarly) && currentTime.before(endDate);
 
                 if (canTimeIn) {
-                    // Proceed with recording the time-in (same as before)
+                    // Proceed with recording the time-in
                     FirebaseFirestore db = FirebaseFirestore.getInstance();
 
                     // Fetch the class ID using the class code
@@ -298,6 +299,7 @@ public class FacultyScheduleTimeIn extends Fragment {
             Toast.makeText(getContext(), "User not authenticated", Toast.LENGTH_SHORT).show();
         }
     }
+
 
 
     private void timeOut() {
