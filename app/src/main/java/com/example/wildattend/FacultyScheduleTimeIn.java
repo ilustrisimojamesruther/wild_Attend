@@ -398,6 +398,7 @@ public class FacultyScheduleTimeIn extends Fragment {
     }
 
     private void navigateToFacultyScheduleTimeout() {
+        ((FacultyDashboard) getActivity()).hideBottomNavigation();
         // Create instance of FacultyScheduleTimeout fragment
         FacultyScheduleTimeout facultyScheduleTimeoutFragment = FacultyScheduleTimeout.newInstance(mParam1, mParam2, mParam3, mParam4, mParam5, mParam6);
 

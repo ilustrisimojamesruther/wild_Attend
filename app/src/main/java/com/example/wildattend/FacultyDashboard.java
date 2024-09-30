@@ -1,18 +1,14 @@
 package com.example.wildattend;
 
 import android.os.Bundle;
+import android.view.View;
 
-import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
 import com.example.wildattend.databinding.ActivityFacultyDashboardBinding;
-import com.example.wildattend.databinding.ActivityStudentDashboardBinding;
 
 public class FacultyDashboard extends AppCompatActivity {
 
@@ -33,11 +29,9 @@ public class FacultyDashboard extends AppCompatActivity {
                     replaceFragment(new FacultyHome());
                     break;
                 case R.id.faculty_schedule:
-                    // Replace with the StudentSchedule fragment
                     replaceFragment(new FacultySchedule());
                     break;
                 case R.id.faculty_profile:
-                    // Replace with the StudentProfile fragment
                     replaceFragment(new FacultyProfile());
                     break;
             }
@@ -56,5 +50,14 @@ public class FacultyDashboard extends AppCompatActivity {
         fragmentTransaction.replace(R.id.faculty_frame_layout, fragment);
         // Commit the transaction
         fragmentTransaction.commit();
+    }
+    // Method to hide the BottomNavigationView
+    public void hideBottomNavigation() {
+        binding2.facultyBottomNavigationView.setVisibility(View.GONE);  // Hides the bottom navbar
+    }
+
+    // Method to show the BottomNavigationView
+    public void showBottomNavigation() {
+        binding2.facultyBottomNavigationView.setVisibility(View.VISIBLE);  // Shows the bottom navbar
     }
 }
