@@ -12,6 +12,7 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -20,8 +21,12 @@ import androidx.fragment.app.Fragment;
 import com.google.android.material.textview.MaterialTextView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -67,11 +72,13 @@ public class FacultyHome extends Fragment {
         facultyProgressBar = rootView.findViewById(R.id.facultyProgressBar);
         percentageText = rootView.findViewById(R.id.percentageText);
 
-//        facultyProgressBar.setProgress(25);  // Set the progress dynamically
 
-        int progress = 80; // Example progress value
-        facultyProgressBar.setProgress(progress);
-        percentageText.setText(progress + "%");
+        // Fetch and display the attendance progress
+        fetchAttendanceProgress();
+
+//        int progress = 80; // Example progress value
+//        facultyProgressBar.setProgress(progress);
+//        percentageText.setText(progress + "%");
 
         // Set the current date
         TextView dateTextView = rootView.findViewById(R.id.date);
@@ -196,6 +203,63 @@ public class FacultyHome extends Fragment {
         // Set the adapter to the ListView
         attendanceLogListView.setAdapter(adapter);
     }
+
+    private void fetchAttendanceProgress() {
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser != null) {
+            String userId = currentUser.getUid();
+            FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+            db.collection("attendRecord")
+                    .whereEqualTo("userId", userId)
+                    .addSnapshotListener(new EventListener<QuerySnapshot>() {
+                        @Override
+                        public void onEvent(@Nullable QuerySnapshot queryDocumentSnapshots, @Nullable FirebaseFirestoreException e) {
+                            if (e != null) {
+                                Toast.makeText(requireContext(), "Failed to fetch attendance data", Toast.LENGTH_SHORT).show();
+                                Log.e(TAG, "Error fetching attendance data", e);
+                                return;
+                            }
+
+                            if (queryDocumentSnapshots == null || queryDocumentSnapshots.isEmpty()) {
+                                facultyProgressBar.setProgress(0);
+                                percentageText.setText("0%");
+                                Log.d(TAG, "No attendance records found");
+                                return;
+                            }
+
+                            Log.d(TAG, "Attendance records fetched successfully, count: " + queryDocumentSnapshots.size());
+
+                            int totalClasses = queryDocumentSnapshots.size();
+                            int attendedClasses = 0;
+
+                            // Calculate attended classes
+                            for (DocumentSnapshot documentSnapshot : queryDocumentSnapshots.getDocuments()) {
+                                String status = documentSnapshot.getString("status");
+                                if ("On-Time".equals(status) || "Present".equals(status)) {
+                                    attendedClasses++;
+                                }
+                            }
+
+                            // Calculate progress percentage
+                            if (totalClasses > 0) {
+                                int progress = (attendedClasses * 100) / totalClasses;
+                                facultyProgressBar.setProgress(progress);
+                                percentageText.setText(progress + "%");
+                            } else {
+                                facultyProgressBar.setProgress(0);
+                                percentageText.setText("0%");
+                            }
+                        }
+                    });
+        } else {
+            Log.e(TAG, "No current user found.");
+        }
+    }
+
+
+
+
 
     private static class LoadImageTask extends AsyncTask<String, Void, Bitmap> {
         private final WeakReference<ImageView> imageViewWeakReference;

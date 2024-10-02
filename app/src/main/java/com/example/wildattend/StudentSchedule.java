@@ -432,4 +432,10 @@ public class StudentSchedule extends Fragment {
             }
         }
     }
+    @Override
+    public void onResume() {
+        super.onResume();
+        // Show the bottom navigation bar
+        ((FacultyDashboard) getActivity()).showBottomNavigation();
+    }
 }
