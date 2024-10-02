@@ -436,6 +436,6 @@ public class StudentSchedule extends Fragment {
     public void onResume() {
         super.onResume();
         // Show the bottom navigation bar
-        ((FacultyDashboard) getActivity()).showBottomNavigation();
+        ((StudentDashboard) getActivity()).showBottomNavigation();
     }
 }
