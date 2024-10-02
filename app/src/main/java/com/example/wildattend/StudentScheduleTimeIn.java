@@ -202,7 +202,7 @@ public class StudentScheduleTimeIn extends Fragment {
                         if (!queryDocumentSnapshots.isEmpty()) {
                             // Assuming classCode is unique and we get only one document
                             QueryDocumentSnapshot classDocument = (QueryDocumentSnapshot) queryDocumentSnapshots.getDocuments().get(0);
-                            String classId = classDocument.getId();
+                            String classId = classDocument.getId(); // Retrieve class ID
                             Log.d(TAG, "Class ID: " + classId);
 
                             Boolean ongoing = classDocument.getBoolean("Ongoing");
@@ -214,11 +214,11 @@ public class StudentScheduleTimeIn extends Fragment {
                                 attendanceRecord.put("message", message);
                                 attendanceRecord.put("status", "On-Time");
                                 attendanceRecord.put("timeIn", timestamp);
-                                attendanceRecord.put("classCode", classCode); // Use class code
+                                attendanceRecord.put("classId", classId); // Use class ID instead of classCode
 
                                 // Use set with SetOptions.merge() to update the document if it exists or create it if it doesn't
                                 db.collection("attendRecord")
-                                        .document(userId + "_" + classId) // Use class ID
+                                        .document(userId + "_" + classId) // Use class ID in document naming
                                         .set(attendanceRecord, SetOptions.merge())
                                         .addOnSuccessListener(aVoid -> {
                                             Log.d(TAG, "Time in recorded successfully!");
@@ -248,6 +248,7 @@ public class StudentScheduleTimeIn extends Fragment {
             Toast.makeText(getContext(), "User not authenticated.", Toast.LENGTH_LONG).show();
         }
     }
+
 
     private void showPopup() {
         View popupView = getLayoutInflater().inflate(R.layout.popup_timein, null);
@@ -283,6 +284,8 @@ public class StudentScheduleTimeIn extends Fragment {
     }
 
     private void navigateToStudentScheduleTimeout() {
+
+        ((StudentDashboard) getActivity()).hideBottomNavigation();
         // Create instance of StudentScheduleTimeout fragment
         StudentScheduleTimeout studentScheduleTimeoutFragment = StudentScheduleTimeout.newInstance(mParam1, mParam2, mParam3, mParam4, mParam5, mParam6);
 

@@ -182,23 +182,24 @@ public class StudentScheduleTimeout extends Fragment {
 
             FirebaseFirestore db = FirebaseFirestore.getInstance();
 
-            // Fetch the teacher's timeout status
+            // Fetch the class document to get the class ID
             db.collection("classes")
                     .whereEqualTo("classCode", classCode)
                     .get()
                     .addOnSuccessListener(queryDocumentSnapshots -> {
                         if (!queryDocumentSnapshots.isEmpty()) {
                             DocumentSnapshot classDocument = queryDocumentSnapshots.getDocuments().get(0);
+                            String classId = classDocument.getId(); // Get classId here
                             String teacherId = classDocument.getString("teacherId"); // Assuming teacherId is stored here
 
                             // Check if the teacher has timed out
                             db.collection("attendRecord")
-                                    .document(teacherId + "_" + classDocument.getId())
+                                    .document(teacherId + "_" + classId)
                                     .get()
                                     .addOnSuccessListener(teacherDocument -> {
                                         if (teacherDocument.exists() && teacherDocument.contains("timeOut")) {
                                             // Teacher has timed out, now proceed with timing out the student
-                                            recordTimeOut(userId, classCode, timestamp);
+                                            recordTimeOut(userId, classId, timestamp); // Use classId here
                                         } else {
                                             // Notify user that the teacher has not timed out yet
                                             Toast.makeText(getContext(), "You cannot time out until the teacher has timed out.", Toast.LENGTH_LONG).show();
@@ -216,44 +217,26 @@ public class StudentScheduleTimeout extends Fragment {
         }
     }
 
-
-    private void recordTimeOut(String userId, String classCode, Date timestamp) {
+    private void recordTimeOut(String userId, String classId, Date timestamp) { // Accept classId instead of classCode
         Map<String, Object> timeoutData = new HashMap<>();
         timeoutData.put("timeOut", timestamp);
-        timeoutData.put("message", "N/A"); // Set the default message to N/A
+        timeoutData.put("message", "I'm here on time"); // Set the default message to a predefined value
+        timeoutData.put("status", "On-Time"); // Set the default status
 
         FirebaseFirestore db = FirebaseFirestore.getInstance();
 
-        // Fetch the class document again to get the class ID
-        db.collection("classes")
-                .whereEqualTo("classCode", classCode)
-                .get()
-                .addOnSuccessListener(queryDocumentSnapshots -> {
-                    if (!queryDocumentSnapshots.isEmpty()) {
-                        DocumentSnapshot classDocument = queryDocumentSnapshots.getDocuments().get(0);
-                        String classId = classDocument.getId();
-
-                        // Update the timeOut field in the attendance record
-                        db.collection("attendRecord")
-                                .document(userId + "_" + classId)
-                                .set(timeoutData, SetOptions.merge())
-                                .addOnSuccessListener(aVoid -> {
-                                    Log.d(TAG, "Time out recorded successfully with message N/A!");
-                                    showTimeoutPopup();
-                                })
-                                .addOnFailureListener(e -> {
-                                    Log.e(TAG, "Error recording time out", e);
-                                });
-                    } else {
-                        Log.e(TAG, "Class document does not exist for class: " + classCode);
-                    }
+        // Update the timeOut field in the attendance record using classId
+        db.collection("attendRecord")
+                .document(userId + "_" + classId)
+                .set(timeoutData, SetOptions.merge())
+                .addOnSuccessListener(aVoid -> {
+                    Log.d(TAG, "Time out recorded successfully with message: " + timeoutData.get("message"));
+                    showTimeoutPopup();
                 })
                 .addOnFailureListener(e -> {
-                    Log.e(TAG, "Error fetching class document", e);
+                    Log.e(TAG, "Error recording time out", e);
                 });
     }
-
-
 
     private void showTimeoutPopup() {
         // Inflate the layout for the popup

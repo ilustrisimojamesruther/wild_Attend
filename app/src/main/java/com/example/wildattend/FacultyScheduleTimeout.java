@@ -178,14 +178,14 @@ public class FacultyScheduleTimeout extends Fragment {
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
         if (currentUser != null) {
             String userId = currentUser.getUid();
-            String className = mParam1; // Assuming you have the class name available
+            String classCode = mParam1; // Assuming you have the class code available
             Date timestamp = new Date(); // Get current timestamp
 
             FirebaseFirestore db = FirebaseFirestore.getInstance();
 
             // Step 1: Fetch the last time in record for the user
             db.collection("attendRecord")
-                    .document(userId + "_" + className)
+                    .document(userId + "_" + classCode)  // Assuming classCode is used here temporarily
                     .get()
                     .addOnSuccessListener(documentSnapshot -> {
                         if (documentSnapshot.exists()) {
@@ -208,7 +208,7 @@ public class FacultyScheduleTimeout extends Fragment {
 
                             // Proceed with timing out if the duration is valid
                             // Fetch the class ID and timeout
-                            fetchClassIdAndTimeout(userId, className, timestamp);
+                            fetchClassIdAndTimeout(userId, classCode, timestamp);  // Fetch classId using the classCode
                         } else {
                             Log.e(TAG, "No attendance record found for the user.");
                         }
@@ -222,18 +222,19 @@ public class FacultyScheduleTimeout extends Fragment {
     }
 
 
-    private void fetchClassIdAndTimeout(String userId, String className, Date timestamp) {
+
+    private void fetchClassIdAndTimeout(String userId, String classCode, Date timestamp) {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
 
         // Fetch the class ID using the class code
         db.collection("classes")
-                .whereEqualTo("classCode", className)
+                .whereEqualTo("classCode", classCode)  // Adjust this query to fetch classId using classCode
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
                     if (!queryDocumentSnapshots.isEmpty()) {
                         // Assuming classCode is unique and we get only one document
                         DocumentSnapshot classDocument = queryDocumentSnapshots.getDocuments().get(0);
-                        String classId = classDocument.getId();
+                        String classId = classDocument.getId();  // Get classID
 
                         // Update the class document to set ongoing to false
                         Map<String, Object> classUpdate = new HashMap<>();
@@ -243,12 +244,12 @@ public class FacultyScheduleTimeout extends Fragment {
                                 .document(classId)
                                 .set(classUpdate, SetOptions.merge())
                                 .addOnSuccessListener(aVoid -> {
-                                    // Optionally, record the time out
+                                    // Optionally, record the time out using classId
                                     Map<String, Object> attendanceUpdate = new HashMap<>();
                                     attendanceUpdate.put("timeOut", timestamp);
 
                                     db.collection("attendRecord")
-                                            .document(userId + "_" + className)
+                                            .document(userId + "_" + classId)  // Use classId instead of className here
                                             .set(attendanceUpdate, SetOptions.merge())
                                             .addOnSuccessListener(aVoid2 -> {
                                                 Log.d(TAG, "Time out recorded successfully!");

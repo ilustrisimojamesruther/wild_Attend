@@ -1,17 +1,13 @@
 package com.example.wildattend;
 
 import android.os.Bundle;
+import android.view.View;
 
-import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
-import com.example.wildattend.databinding.ActivityMainBinding;
 import com.example.wildattend.databinding.ActivityStudentDashboardBinding;
 
 public class StudentDashboard extends AppCompatActivity {
@@ -54,5 +50,13 @@ public class StudentDashboard extends AppCompatActivity {
         fragmentTransaction.replace(R.id.frame_layout, fragment);
         // Commit the transaction
         fragmentTransaction.commit();
+    }
+    public void hideBottomNavigation() {
+        binding.bottomNavigationView.setVisibility(View.GONE);  // Hides the bottom navbar
+    }
+
+    // Method to show the BottomNavigationView
+    public void showBottomNavigation() {
+        binding.bottomNavigationView.setVisibility(View.VISIBLE);  // Shows the bottom navbar
     }
 }
