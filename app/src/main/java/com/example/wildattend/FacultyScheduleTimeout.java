@@ -178,39 +178,42 @@ public class FacultyScheduleTimeout extends Fragment {
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
         if (currentUser != null) {
             String userId = currentUser.getUid();
-            String classCode = mParam1; // Assuming you have the class code available
-            Date timestamp = new Date(); // Get current timestamp
+            String className = mParam1; // Class name
+            Date timestamp = new Date(); // Current timestamp
 
             FirebaseFirestore db = FirebaseFirestore.getInstance();
 
-            // Step 1: Fetch the last time in record for the user
+            // Step 1: Fetch the last time-in record for the user
             db.collection("attendRecord")
-                    .document(userId + "_" + classCode)  // Assuming classCode is used here temporarily
+                    .document(userId + "_" + className) // Use userId and className for document ID
                     .get()
                     .addOnSuccessListener(documentSnapshot -> {
                         if (documentSnapshot.exists()) {
-                            // Retrieve the last time in timestamp
+                            // Retrieve the last time-in timestamp
                             Date lastTimeIn = documentSnapshot.getDate("timeIn");
                             if (lastTimeIn != null) {
                                 // Step 2: Check the duration between last time in and current time out
                                 long duration = timestamp.getTime() - lastTimeIn.getTime();
                                 Log.d(TAG, "Duration between time in and time out: " + duration + " ms");
 
-                                if (duration < 3600000) { // 1 hour in milliseconds
+                                // Check if the duration is less than 1 hour (3600000 ms)
+                                if (duration < 3600000) {
                                     // Show error message
                                     Toast.makeText(getContext(), "You need to wait at least 1 hour before timing out.", Toast.LENGTH_LONG).show();
                                     Log.d(TAG, "User attempted to time out before 1 hour elapsed.");
                                     return; // Exit the method if the duration is less than 1 hour
+                                } else {
+                                    Log.d(TAG, "User waited more than 1 hour, proceeding to timeout.");
+                                    // Proceed to timeout after 1 hour
+                                    fetchClassIdAndTimeout(userId, className, timestamp);
                                 }
                             } else {
                                 Log.e(TAG, "Last time in timestamp is null.");
+                                Toast.makeText(getContext(), "No valid time-in record found.", Toast.LENGTH_SHORT).show();
                             }
-
-                            // Proceed with timing out if the duration is valid
-                            // Fetch the class ID and timeout
-                            fetchClassIdAndTimeout(userId, classCode, timestamp);  // Fetch classId using the classCode
                         } else {
                             Log.e(TAG, "No attendance record found for the user.");
+                            Toast.makeText(getContext(), "No attendance record found.", Toast.LENGTH_SHORT).show();
                         }
                     })
                     .addOnFailureListener(e -> {
@@ -218,23 +221,21 @@ public class FacultyScheduleTimeout extends Fragment {
                     });
         } else {
             Log.e(TAG, "User not authenticated");
+            Toast.makeText(getContext(), "User not authenticated", Toast.LENGTH_SHORT).show();
         }
     }
 
-
-
-    private void fetchClassIdAndTimeout(String userId, String classCode, Date timestamp) {
+    private void fetchClassIdAndTimeout(String userId, String className, Date timestamp) {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
 
-        // Fetch the class ID using the class code
+        // Fetch the class ID using the class name
         db.collection("classes")
-                .whereEqualTo("classCode", classCode)  // Adjust this query to fetch classId using classCode
+                .whereEqualTo("classCode", className)
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
                     if (!queryDocumentSnapshots.isEmpty()) {
-                        // Assuming classCode is unique and we get only one document
                         DocumentSnapshot classDocument = queryDocumentSnapshots.getDocuments().get(0);
-                        String classId = classDocument.getId();  // Get classID
+                        String classId = classDocument.getId(); // Get classId from document ID
 
                         // Update the class document to set ongoing to false
                         Map<String, Object> classUpdate = new HashMap<>();
@@ -244,12 +245,13 @@ public class FacultyScheduleTimeout extends Fragment {
                                 .document(classId)
                                 .set(classUpdate, SetOptions.merge())
                                 .addOnSuccessListener(aVoid -> {
-                                    // Optionally, record the time out using classId
+                                    // Record the time out
                                     Map<String, Object> attendanceUpdate = new HashMap<>();
                                     attendanceUpdate.put("timeOut", timestamp);
+                                    attendanceUpdate.put("classId", classId); // Include classId in the attendance record
 
                                     db.collection("attendRecord")
-                                            .document(userId + "_" + classId)  // Use classId instead of className here
+                                            .document(userId + "_" + classId) // Use userId and classId in document ID
                                             .set(attendanceUpdate, SetOptions.merge())
                                             .addOnSuccessListener(aVoid2 -> {
                                                 Log.d(TAG, "Time out recorded successfully!");
@@ -263,16 +265,14 @@ public class FacultyScheduleTimeout extends Fragment {
                                     Log.e(TAG, "Error updating class document", e);
                                 });
                     } else {
-                        // Handle the case where the class document was not found
                         Log.e(TAG, "Class document not found");
+                        Toast.makeText(getContext(), "Class document not found", Toast.LENGTH_SHORT).show();
                     }
                 })
                 .addOnFailureListener(e -> {
                     Log.e(TAG, "Error fetching class document", e);
                 });
     }
-
-
 
     private void showTimeoutPopup() {
         // Inflate the layout for the popup

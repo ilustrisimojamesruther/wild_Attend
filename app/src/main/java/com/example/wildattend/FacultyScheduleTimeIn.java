@@ -185,25 +185,25 @@ public class FacultyScheduleTimeIn extends Fragment {
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
         if (currentUser != null) {
             String userId = currentUser.getUid();
-            String classCode = mParam1; // Class code
-            String startTime = mParam2; // Start time
-            String endTime = mParam3; // End time
+            String className = mParam1; // Class name
+            String startTime = mParam2; // Start time in "hh:mm a" format from Firebase
+            String endTime = mParam3; // End time in "hh:mm a" format from Firebase
             String message = "I'm here on time"; // Default message
             Date timestamp = new Date(); // Current timestamp
 
             // Set up date formats
-            SimpleDateFormat fullDateFormat12Hour = new SimpleDateFormat("yyyy-MM-dd hh:mm a", Locale.getDefault());
-            SimpleDateFormat timeFormat12Hour = new SimpleDateFormat("hh:mm a", Locale.getDefault());
+            SimpleDateFormat fullDateFormat12Hour = new SimpleDateFormat("yyyy-MM-dd hh:mm a", Locale.getDefault()); // For parsing 12-hour format with AM/PM
+            SimpleDateFormat timeFormat12Hour = new SimpleDateFormat("hh:mm a", Locale.getDefault()); // For logging 12-hour format with AM/PM
 
             try {
                 // Get today's date
                 String today = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
 
-                // Combine today's date with start and end times
-                Date startDate = fullDateFormat12Hour.parse(today + " " + startTime);
-                Date endDate = fullDateFormat12Hour.parse(today + " " + endTime);
+                // Combine today's date with start and end times for parsing (12-hour format with AM/PM)
+                Date startDate = fullDateFormat12Hour.parse(today + " " + startTime); // Full start time in 12-hour format
+                Date endDate = fullDateFormat12Hour.parse(today + " " + endTime); // Full end time in 12-hour format
 
-                // Check if endDate is before startDate
+                // Check if endDate is before startDate, which implies it goes to the next day
                 if (endDate.before(startDate)) {
                     Calendar calendar = Calendar.getInstance();
                     calendar.setTime(endDate);
@@ -213,32 +213,44 @@ public class FacultyScheduleTimeIn extends Fragment {
 
                 // Current time
                 Date currentTime = new Date();
+
+                // Calculate 15 minutes before start time
                 Date fifteenMinutesEarly = new Date(startDate.getTime() - 15 * 60 * 1000);
 
+                // Log the times in 12-hour format with AM/PM
+                Log.d(TAG, "Start time (12-hour): " + timeFormat12Hour.format(startDate));
+                Log.d(TAG, "End time (12-hour): " + timeFormat12Hour.format(endDate));
+                Log.d(TAG, "Fifteen minutes early: " + timeFormat12Hour.format(fifteenMinutesEarly));
+                Log.d(TAG, "Current time: " + timeFormat12Hour.format(currentTime));
+
+                // Ensure time-in is within the allowed window (15 minutes before start time to end time)
                 boolean canTimeIn = currentTime.after(fifteenMinutesEarly) && currentTime.before(endDate);
 
                 if (canTimeIn) {
+                    // Proceed with recording the time-in
                     FirebaseFirestore db = FirebaseFirestore.getInstance();
 
-                    // Fetch the class ID using the class code
+                    // Fetch the class ID using the class name
                     db.collection("classes")
-                            .whereEqualTo("classCode", classCode)
+                            .whereEqualTo("classCode", className)
                             .get()
                             .addOnSuccessListener(queryDocumentSnapshots -> {
                                 if (!queryDocumentSnapshots.isEmpty()) {
                                     DocumentSnapshot classDocument = queryDocumentSnapshots.getDocuments().get(0);
-                                    String classId = classDocument.getId();  // Get class ID
+                                    String classId = classDocument.getId(); // Get classId from document ID
 
+                                    // Check if class is ongoing
                                     Boolean ongoing = classDocument.getBoolean("Ongoing");
                                     if (ongoing == null || !ongoing) {
+                                        // Class is not ongoing, allow the faculty to time in
                                         Map<String, Object> attendanceRecord = new HashMap<>();
                                         attendanceRecord.put("userId", userId);
                                         attendanceRecord.put("message", message);
                                         attendanceRecord.put("status", "On-Time");
                                         attendanceRecord.put("timeIn", timestamp);
-                                        attendanceRecord.put("classId", classId);  // Use class ID
+                                        attendanceRecord.put("classId", classId); // Update to use classId
 
-                                        // Set class to ongoing
+                                        // Update the class document to set ongoing to true
                                         Map<String, Object> classUpdate = new HashMap<>();
                                         classUpdate.put("Ongoing", true);
 
@@ -246,8 +258,9 @@ public class FacultyScheduleTimeIn extends Fragment {
                                                 .document(classId)
                                                 .set(classUpdate, SetOptions.merge())
                                                 .addOnSuccessListener(aVoid -> {
+                                                    // Record the attendance
                                                     db.collection("attendRecord")
-                                                            .document(userId + "_" + classId)  // Use class ID here
+                                                            .document(userId + "_" + classId) // Use classId in document ID
                                                             .set(attendanceRecord, SetOptions.merge())
                                                             .addOnSuccessListener(aVoid2 -> {
                                                                 Log.d(TAG, "Time in recorded successfully!");
@@ -261,9 +274,11 @@ public class FacultyScheduleTimeIn extends Fragment {
                                                     Log.e(TAG, "Error updating class document", e);
                                                 });
                                     } else {
+                                        Log.e(TAG, "Class is already ongoing");
                                         Toast.makeText(getContext(), "Class is already ongoing", Toast.LENGTH_SHORT).show();
                                     }
                                 } else {
+                                    Log.e(TAG, "Class document not found");
                                     Toast.makeText(getContext(), "Class document not found", Toast.LENGTH_SHORT).show();
                                 }
                             })
@@ -284,66 +299,6 @@ public class FacultyScheduleTimeIn extends Fragment {
             Toast.makeText(getContext(), "User not authenticated", Toast.LENGTH_SHORT).show();
         }
     }
-
-
-
-
-
-    private void timeOut() {
-        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
-        if (currentUser != null) {
-            String userId = currentUser.getUid();
-            String classCode = mParam1; // Class code
-            Date timestamp = new Date(); // Get current timestamp
-
-            FirebaseFirestore db = FirebaseFirestore.getInstance();
-
-            // Fetch the class ID using the class code
-            db.collection("classes")
-                    .whereEqualTo("classCode", classCode)
-                    .get()
-                    .addOnSuccessListener(queryDocumentSnapshots -> {
-                        if (!queryDocumentSnapshots.isEmpty()) {
-                            DocumentSnapshot classDocument = queryDocumentSnapshots.getDocuments().get(0);
-                            String classId = classDocument.getId();  // Get class ID
-
-                            // Update the class document to set ongoing to false
-                            Map<String, Object> classUpdate = new HashMap<>();
-                            classUpdate.put("Ongoing", false);
-
-                            db.collection("classes")
-                                    .document(classId)
-                                    .set(classUpdate, SetOptions.merge())
-                                    .addOnSuccessListener(aVoid -> {
-                                        Map<String, Object> attendanceUpdate = new HashMap<>();
-                                        attendanceUpdate.put("timeOut", timestamp);
-
-                                        db.collection("attendRecord")
-                                                .document(userId + "_" + classId)  // Use class ID here
-                                                .set(attendanceUpdate, SetOptions.merge())
-                                                .addOnSuccessListener(aVoid2 -> {
-                                                    Log.d(TAG, "Time out recorded successfully!");
-                                                    // Handle successful time out, e.g., navigate to another fragment
-                                                })
-                                                .addOnFailureListener(e -> {
-                                                    Log.e(TAG, "Error recording time out", e);
-                                                });
-                                    })
-                                    .addOnFailureListener(e -> {
-                                        Log.e(TAG, "Error updating class document", e);
-                                    });
-                        } else {
-                            Log.e(TAG, "Class document not found");
-                        }
-                    })
-                    .addOnFailureListener(e -> {
-                        Log.e(TAG, "Error fetching class document", e);
-                    });
-        } else {
-            Log.e(TAG, "User not authenticated");
-        }
-    }
-
 
     private void showPopup() {
         View popupView = getLayoutInflater().inflate(R.layout.popup_timein, null);
