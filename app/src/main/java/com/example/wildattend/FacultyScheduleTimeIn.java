@@ -245,10 +245,11 @@ public class FacultyScheduleTimeIn extends Fragment {
                                         // Class is not ongoing, allow the faculty to time in
                                         Map<String, Object> attendanceRecord = new HashMap<>();
                                         attendanceRecord.put("userId", userId);
+                                        attendanceRecord.put("className", className); // Add className to the record
                                         attendanceRecord.put("message", message);
                                         attendanceRecord.put("status", "On-Time");
                                         attendanceRecord.put("timeIn", timestamp);
-                                        attendanceRecord.put("classId", classId); // Update to use classId
+                                        attendanceRecord.put("classId", classId); // Use classId
 
                                         // Update the class document to set ongoing to true
                                         Map<String, Object> classUpdate = new HashMap<>();

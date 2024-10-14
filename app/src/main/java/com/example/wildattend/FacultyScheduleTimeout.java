@@ -183,47 +183,64 @@ public class FacultyScheduleTimeout extends Fragment {
 
             FirebaseFirestore db = FirebaseFirestore.getInstance();
 
-            // Step 1: Fetch the last time-in record for the user
-            db.collection("attendRecord")
-                    .document(userId + "_" + className) // Use userId and className for document ID
+            // Fetch the class ID using the class name
+            db.collection("classes")
+                    .whereEqualTo("classCode", className)
                     .get()
-                    .addOnSuccessListener(documentSnapshot -> {
-                        if (documentSnapshot.exists()) {
-                            // Retrieve the last time-in timestamp
-                            Date lastTimeIn = documentSnapshot.getDate("timeIn");
-                            if (lastTimeIn != null) {
-                                // Step 2: Check the duration between last time in and current time out
-                                long duration = timestamp.getTime() - lastTimeIn.getTime();
-                                Log.d(TAG, "Duration between time in and time out: " + duration + " ms");
+                    .addOnSuccessListener(queryDocumentSnapshots -> {
+                        if (!queryDocumentSnapshots.isEmpty()) {
+                            DocumentSnapshot classDocument = queryDocumentSnapshots.getDocuments().get(0);
+                            String classId = classDocument.getId(); // Get classId from document ID
 
-                                // Check if the duration is less than 1 hour (3600000 ms)
-                                if (duration < 3600000) {
-                                    // Show error message
-                                    Toast.makeText(getContext(), "You need to wait at least 1 hour before timing out.", Toast.LENGTH_LONG).show();
-                                    Log.d(TAG, "User attempted to time out before 1 hour elapsed.");
-                                    return; // Exit the method if the duration is less than 1 hour
-                                } else {
-                                    Log.d(TAG, "User waited more than 1 hour, proceeding to timeout.");
-                                    // Proceed to timeout after 1 hour
-                                    fetchClassIdAndTimeout(userId, className, timestamp);
-                                }
-                            } else {
-                                Log.e(TAG, "Last time in timestamp is null.");
-                                Toast.makeText(getContext(), "No valid time-in record found.", Toast.LENGTH_SHORT).show();
-                            }
+                            // Fetch the last time-in record for the user
+                            db.collection("attendRecord")
+                                    .document(userId + "_" + classId) // Use userId and classId for document ID
+                                    .get()
+                                    .addOnSuccessListener(documentSnapshot -> {
+                                        if (documentSnapshot.exists()) {
+                                            Date lastTimeIn = documentSnapshot.getDate("timeIn");
+                                            if (lastTimeIn != null) {
+                                                long duration = timestamp.getTime() - lastTimeIn.getTime();
+                                                Log.d(TAG, "Duration between time in and time out: " + duration + " ms");
+
+                                                // Check if the duration is less than 1 hour (3600000 ms)
+                                                if (duration < 3600000) {
+                                                    // Show error message
+                                                    Toast.makeText(getContext(), "You need to wait at least 1 hour before timing out.", Toast.LENGTH_LONG).show();
+                                                    Log.d(TAG, "User attempted to time out before 1 hour elapsed.");
+                                                    return; // Exit the method if the duration is less than 1 hour
+                                                } else {
+                                                    Log.d(TAG, "User waited more than 1 hour, showing timeout confirmation popup.");
+                                                    // Show confirmation popup
+                                                    showTimeoutPopup(userId, classId, timestamp);
+                                                }
+                                            } else {
+                                                Log.e(TAG, "Last time in timestamp is null.");
+                                                Toast.makeText(getContext(), "No valid time-in record found.", Toast.LENGTH_SHORT).show();
+                                            }
+                                        } else {
+                                            Log.e(TAG, "No attendance record found for the user.");
+                                            Toast.makeText(getContext(), "No attendance record found.", Toast.LENGTH_SHORT).show();
+                                        }
+                                    })
+                                    .addOnFailureListener(e -> {
+                                        Log.e(TAG, "Error fetching attendance record", e);
+                                    });
                         } else {
-                            Log.e(TAG, "No attendance record found for the user.");
-                            Toast.makeText(getContext(), "No attendance record found.", Toast.LENGTH_SHORT).show();
+                            Log.e(TAG, "Class document not found");
+                            Toast.makeText(getContext(), "Class document not found", Toast.LENGTH_SHORT).show();
                         }
                     })
                     .addOnFailureListener(e -> {
-                        Log.e(TAG, "Error fetching attendance record", e);
+                        Log.e(TAG, "Error fetching class document", e);
                     });
         } else {
             Log.e(TAG, "User not authenticated");
             Toast.makeText(getContext(), "User not authenticated", Toast.LENGTH_SHORT).show();
         }
     }
+
+
 
     private void fetchClassIdAndTimeout(String userId, String className, Date timestamp) {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
@@ -247,7 +264,7 @@ public class FacultyScheduleTimeout extends Fragment {
                                 .addOnSuccessListener(aVoid -> {
                                     // Record the time out
                                     Map<String, Object> attendanceUpdate = new HashMap<>();
-                                    attendanceUpdate.put("timeOut", timestamp);
+                                    attendanceUpdate.put("On-Time", timestamp);
                                     attendanceUpdate.put("classId", classId); // Include classId in the attendance record
 
                                     db.collection("attendRecord")
@@ -255,7 +272,6 @@ public class FacultyScheduleTimeout extends Fragment {
                                             .set(attendanceUpdate, SetOptions.merge())
                                             .addOnSuccessListener(aVoid2 -> {
                                                 Log.d(TAG, "Time out recorded successfully!");
-                                                showTimeoutPopup();
                                             })
                                             .addOnFailureListener(e -> {
                                                 Log.e(TAG, "Error recording time out", e);
@@ -274,7 +290,7 @@ public class FacultyScheduleTimeout extends Fragment {
                 });
     }
 
-    private void showTimeoutPopup() {
+    private void showTimeoutPopup(String userId, String classId, Date timestamp) {
         // Inflate the layout for the popup
         View popupView = LayoutInflater.from(getContext()).inflate(R.layout.popup_timeout_confirm, null);
 
@@ -290,21 +306,56 @@ public class FacultyScheduleTimeout extends Fragment {
 
         timeOutYes.setOnClickListener(v -> {
             // Perform actions when "Yes" button is clicked
-            // For example, navigate to FacultySchedule
-            FragmentManager fragmentManager = requireActivity().getSupportFragmentManager();
-            fragmentManager.popBackStack(); // Clear the back stack
-            FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-            fragmentTransaction.replace(R.id.faculty_frame_layout, new FacultySchedule());
-            fragmentTransaction.commit();
-            popupWindow.dismiss(); // Dismiss the popup window after navigation
+            // Record the time-out
+            Map<String, Object> attendanceRecord = new HashMap<>();
+            attendanceRecord.put("userId", userId);
+            attendanceRecord.put("classId", classId);
+            attendanceRecord.put("timeOut", timestamp); // Add timeOut to the record
+            attendanceRecord.put("status", "Timed Out"); // Update status as needed
+
+            FirebaseFirestore db = FirebaseFirestore.getInstance();
+            db.collection("attendRecord")
+                    .document(userId + "_" + classId) // Update the same document
+                    .set(attendanceRecord, SetOptions.merge())
+                    .addOnSuccessListener(aVoid -> {
+                        Log.d(TAG, "Time out recorded successfully!");
+                        Toast.makeText(getContext(), "Successfully timed out!", Toast.LENGTH_SHORT).show();
+
+                        // Update the class document to set ongoing to false
+                        Map<String, Object> classUpdate = new HashMap<>();
+                        classUpdate.put("Ongoing", false);
+
+                        db.collection("classes")
+                                .document(classId)
+                                .set(classUpdate, SetOptions.merge())
+                                .addOnSuccessListener(aVoid1 -> {
+                                    Log.d(TAG, "Class ongoing status updated to false.");
+                                    // Redirect to FacultySchedule after timeout
+                                    FragmentManager fragmentManager = requireActivity().getSupportFragmentManager();
+                                    fragmentManager.popBackStack(); // Clear the back stack
+                                    FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+                                    fragmentTransaction.replace(R.id.faculty_frame_layout, new FacultySchedule());
+                                    fragmentTransaction.commit();
+
+                                    popupWindow.dismiss(); // Dismiss the popup window after navigation
+                                })
+                                .addOnFailureListener(e -> {
+                                    Log.e(TAG, "Error updating ongoing status", e);
+                                });
+                    })
+                    .addOnFailureListener(e -> {
+                        Log.e(TAG, "Error recording time out", e);
+                    });
         });
 
         timeOutNo.setOnClickListener(v -> {
-            // Perform actions when "No" button is clicked
-            // For example, dismiss the popup window
+            // Dismiss the popup window
             popupWindow.dismiss();
         });
     }
+
+
+
 
     private static class FacultyLoadImageTask extends AsyncTask<String, Void, Bitmap> {
         private final WeakReference<ImageView> imageViewWeakReference;
