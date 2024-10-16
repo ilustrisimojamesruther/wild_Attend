@@ -26,6 +26,7 @@ import androidx.fragment.app.FragmentTransaction;
 import com.google.android.material.imageview.ShapeableImageView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.SetOptions;
@@ -182,7 +183,7 @@ public class StudentScheduleTimeIn extends Fragment {
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
         if (currentUser != null) {
             String userId = currentUser.getUid();
-            String classCode = mParam1; // Retrieve class code from arguments
+            String className = mParam1; // Retrieve class code from arguments
             String roomLocation = mParam5;
             String classDesc = mParam4;
             String startTime = mParam2; // Retrieve class time from arguments
@@ -192,16 +193,16 @@ public class StudentScheduleTimeIn extends Fragment {
 
             FirebaseFirestore db = FirebaseFirestore.getInstance();
 
-            Log.d(TAG, "Class code: " + classCode); // Add this debug log
+            Log.d(TAG, "Class name: " + className); // Add this debug log
 
             // Step 1: Fetch the class ID using the class code
             db.collection("classes")
-                    .whereEqualTo("classCode", classCode)
+                    .whereEqualTo("classCode", className)
                     .get()
                     .addOnSuccessListener(queryDocumentSnapshots -> {
                         if (!queryDocumentSnapshots.isEmpty()) {
-                            // Assuming classCode is unique and we get only one document
-                            QueryDocumentSnapshot classDocument = (QueryDocumentSnapshot) queryDocumentSnapshots.getDocuments().get(0);
+                               // Assuming classCode is unique and we get only one document
+                            DocumentSnapshot classDocument = queryDocumentSnapshots.getDocuments().get(0);
                             String classId = classDocument.getId(); // Retrieve class ID
                             Log.d(TAG, "Class ID: " + classId);
 
@@ -211,6 +212,7 @@ public class StudentScheduleTimeIn extends Fragment {
                                 // Create a map to hold the attendance data
                                 Map<String, Object> attendanceRecord = new HashMap<>();
                                 attendanceRecord.put("userId", userId);
+                                attendanceRecord.put("className", className); // Add className to the record
                                 attendanceRecord.put("message", message);
                                 attendanceRecord.put("status", "On-Time");
                                 attendanceRecord.put("timeIn", timestamp);
@@ -235,7 +237,7 @@ public class StudentScheduleTimeIn extends Fragment {
                                 Toast.makeText(getContext(), "Class is not ongoing. Cannot time in.", Toast.LENGTH_LONG).show();
                             }
                         } else {
-                            Log.e(TAG, "Class document does not exist for class: " + classCode); // Add this debug log
+                            Log.e(TAG, "Class document does not exist for class: " + className); // Add this debug log
                             Toast.makeText(getContext(), "Class does not exist.", Toast.LENGTH_LONG).show();
                         }
                     })

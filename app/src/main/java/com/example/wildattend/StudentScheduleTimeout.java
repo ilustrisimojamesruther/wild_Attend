@@ -177,68 +177,48 @@ public class StudentScheduleTimeout extends Fragment {
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
         if (currentUser != null) {
             String userId = currentUser.getUid();
-            String classCode = mParam1; // Assuming you have the class code available
+            String className = mParam1; // Assuming you have the class code available
             Date timestamp = new Date(); // Get current timestamp
 
             FirebaseFirestore db = FirebaseFirestore.getInstance();
 
-            // Fetch the class document to get the class ID
+            // Fetch the class document using the classCode
             db.collection("classes")
-                    .whereEqualTo("classCode", classCode)
+                    .whereEqualTo("classCode", className)
                     .get()
                     .addOnSuccessListener(queryDocumentSnapshots -> {
                         if (!queryDocumentSnapshots.isEmpty()) {
                             DocumentSnapshot classDocument = queryDocumentSnapshots.getDocuments().get(0);
-                            String classId = classDocument.getId(); // Get classId here
-                            String teacherId = classDocument.getString("teacherId"); // Assuming teacherId is stored here
+                            String classId = classDocument.getId(); // Get classId
+                            Boolean ongoing = classDocument.getBoolean("Ongoing"); // Check the ongoing status
 
-                            // Check if the teacher has timed out
-                            db.collection("attendRecord")
-                                    .document(teacherId + "_" + classId)
-                                    .get()
-                                    .addOnSuccessListener(teacherDocument -> {
-                                        if (teacherDocument.exists() && teacherDocument.contains("timeOut")) {
-                                            // Teacher has timed out, now proceed with timing out the student
-                                            recordTimeOut(userId, classId, timestamp); // Use classId here
-                                        } else {
-                                            // Notify user that the teacher has not timed out yet
-                                            Toast.makeText(getContext(), "You cannot time out until the teacher has timed out.", Toast.LENGTH_LONG).show();
-                                        }
-                                    });
+                            // Proceed if ongoing is false
+                            if (ongoing != null && !ongoing) {
+                                Log.d(TAG, "Ongoing status is false. Allowing student to time out.");
+                                // Allow the student to time out
+                                showTimeoutPopup(userId, classId, timestamp);
+                            } else {
+                                Log.d(TAG, "Ongoing status is true. Student cannot time out yet.");
+                                Toast.makeText(getContext(), "You cannot time out until the class is finished.", Toast.LENGTH_LONG).show();
+                            }
                         } else {
-                            Log.e(TAG, "Class document does not exist for class: " + classCode);
+                            Log.e(TAG, "Class document not found for class code: " + className);
+                            Toast.makeText(getContext(), "Class document not found.", Toast.LENGTH_SHORT).show();
                         }
                     })
                     .addOnFailureListener(e -> {
                         Log.e(TAG, "Error fetching class document", e);
+                        Toast.makeText(getContext(), "Error fetching class document.", Toast.LENGTH_SHORT).show();
                     });
         } else {
             Log.e(TAG, "User not authenticated");
+            Toast.makeText(getContext(), "User not authenticated", Toast.LENGTH_SHORT).show();
         }
     }
 
-    private void recordTimeOut(String userId, String classId, Date timestamp) { // Accept classId instead of classCode
-        Map<String, Object> timeoutData = new HashMap<>();
-        timeoutData.put("timeOut", timestamp);
-        timeoutData.put("message", "I'm here on time"); // Set the default message to a predefined value
-        timeoutData.put("status", "On-Time"); // Set the default status
 
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
 
-        // Update the timeOut field in the attendance record using classId
-        db.collection("attendRecord")
-                .document(userId + "_" + classId)
-                .set(timeoutData, SetOptions.merge())
-                .addOnSuccessListener(aVoid -> {
-                    Log.d(TAG, "Time out recorded successfully with message: " + timeoutData.get("message"));
-                    showTimeoutPopup();
-                })
-                .addOnFailureListener(e -> {
-                    Log.e(TAG, "Error recording time out", e);
-                });
-    }
-
-    private void showTimeoutPopup() {
+    private void showTimeoutPopup(String userId, String classId, Date timestamp) {
         // Inflate the layout for the popup
         View popupView = LayoutInflater.from(getContext()).inflate(R.layout.popup_timeout_confirm, null);
 
@@ -254,21 +234,43 @@ public class StudentScheduleTimeout extends Fragment {
 
         timeOutYes.setOnClickListener(v -> {
             // Perform actions when "Yes" button is clicked
-            // For example, navigate to StudentSchedule
-            FragmentManager fragmentManager = requireActivity().getSupportFragmentManager();
-            fragmentManager.popBackStack(); // Clear the back stack
-            FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-            fragmentTransaction.replace(R.id.frame_layout, new StudentSchedule());
-            fragmentTransaction.commit();
-            popupWindow.dismiss(); // Dismiss the popup window after navigation
+            // Record the time-out
+            Map<String, Object> timeoutData = new HashMap<>();
+            timeoutData.put("timeOut", timestamp);
+            timeoutData.put("message", "I'm here on time"); // Set the default message
+            timeoutData.put("status", "On-Time"); // Set the default status
+
+            FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+            db.collection("attendRecord")
+                    .document(userId + "_" + classId) // Update the same document using userId and classId
+                    .set(timeoutData, SetOptions.merge())
+                    .addOnSuccessListener(aVoid -> {
+                        Log.d(TAG, "Time out recorded successfully with message: " + timeoutData.get("message"));
+                        Toast.makeText(getContext(), "Successfully timed out!", Toast.LENGTH_SHORT).show();
+
+                        // Navigate to StudentSchedule
+                        FragmentManager fragmentManager = requireActivity().getSupportFragmentManager();
+                        fragmentManager.popBackStack(); // Clear the back stack
+                        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+                        fragmentTransaction.replace(R.id.frame_layout, new StudentSchedule());
+                        fragmentTransaction.commit();
+
+                        popupWindow.dismiss(); // Dismiss the popup window after navigation
+                    })
+                    .addOnFailureListener(e -> {
+                        Log.e(TAG, "Error recording time out", e);
+                    });
         });
 
         timeOutNo.setOnClickListener(v -> {
-            // Perform actions when "No" button is clicked
-            // For example, dismiss the popup window
+            // Dismiss the popup window
             popupWindow.dismiss();
         });
     }
+
+
+
 
     private static class StudentLoadImageTask extends AsyncTask<String, Void, Bitmap> {
         private final WeakReference<ImageView> imageViewWeakReference;
