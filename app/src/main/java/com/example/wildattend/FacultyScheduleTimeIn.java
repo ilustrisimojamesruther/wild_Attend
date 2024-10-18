@@ -188,12 +188,9 @@ public class FacultyScheduleTimeIn extends Fragment {
             String className = mParam1; // Class name
             String startTime = mParam2; // Start time in "hh:mm a" format from Firebase
             String endTime = mParam3; // End time in "hh:mm a" format from Firebase
-            String message = "I'm here on time"; // Default message
             Date timestamp = new Date(); // Current timestamp
 
-            // Set up date formats
             SimpleDateFormat fullDateFormat12Hour = new SimpleDateFormat("yyyy-MM-dd hh:mm a", Locale.getDefault()); // For parsing 12-hour format with AM/PM
-            SimpleDateFormat timeFormat12Hour = new SimpleDateFormat("hh:mm a", Locale.getDefault()); // For logging 12-hour format with AM/PM
 
             try {
                 // Get today's date
@@ -214,23 +211,26 @@ public class FacultyScheduleTimeIn extends Fragment {
                 // Current time
                 Date currentTime = new Date();
 
-                // Calculate 15 minutes before start time
-                Date fifteenMinutesEarly = new Date(startDate.getTime() - 15 * 60 * 1000);
+                // Calculate 15 minutes after start time
+                Date fifteenMinutesLate = new Date(startDate.getTime() + 15 * 60 * 1000);
 
-                // Log the times in 12-hour format with AM/PM
-                Log.d(TAG, "Start time (12-hour): " + timeFormat12Hour.format(startDate));
-                Log.d(TAG, "End time (12-hour): " + timeFormat12Hour.format(endDate));
-                Log.d(TAG, "Fifteen minutes early: " + timeFormat12Hour.format(fifteenMinutesEarly));
-                Log.d(TAG, "Current time: " + timeFormat12Hour.format(currentTime));
+                // Calculate 30 minutes after start time
+                Date thirtyMinutesLate = new Date(startDate.getTime() + 30 * 60 * 1000);
 
-                // Ensure time-in is within the allowed window (15 minutes before start time to end time)
-                boolean canTimeIn = currentTime.after(fifteenMinutesEarly) && currentTime.before(endDate);
+                // Determine the user's status
+                String status;
+                if (currentTime.after(thirtyMinutesLate)) {
+                    status = "Absent";
+                } else if (currentTime.after(fifteenMinutesLate)) {
+                    status = "Late";
+                } else {
+                    status = "On-Time";
+                }
 
-                if (canTimeIn) {
-                    // Proceed with recording the time-in
+                // Ensure time-in is within the allowed window (up to the end time)
+                if (currentTime.before(endDate)) {
                     FirebaseFirestore db = FirebaseFirestore.getInstance();
 
-                    // Fetch the class ID using the class name
                     db.collection("classes")
                             .whereEqualTo("classCode", className)
                             .get()
@@ -239,19 +239,15 @@ public class FacultyScheduleTimeIn extends Fragment {
                                     DocumentSnapshot classDocument = queryDocumentSnapshots.getDocuments().get(0);
                                     String classId = classDocument.getId(); // Get classId from document ID
 
-                                    // Check if class is ongoing
                                     Boolean ongoing = classDocument.getBoolean("Ongoing");
                                     if (ongoing == null || !ongoing) {
-                                        // Class is not ongoing, allow the faculty to time in
                                         Map<String, Object> attendanceRecord = new HashMap<>();
                                         attendanceRecord.put("userId", userId);
-                                        attendanceRecord.put("className", className); // Add className to the record
-                                        attendanceRecord.put("message", message);
-                                        attendanceRecord.put("status", "On-Time");
+                                        attendanceRecord.put("className", className);
+                                        attendanceRecord.put("status", status);
                                         attendanceRecord.put("timeIn", timestamp);
-                                        attendanceRecord.put("classId", classId); // Use classId
+                                        attendanceRecord.put("classId", classId);
 
-                                        // Update the class document to set ongoing to true
                                         Map<String, Object> classUpdate = new HashMap<>();
                                         classUpdate.put("Ongoing", true);
 
@@ -259,9 +255,8 @@ public class FacultyScheduleTimeIn extends Fragment {
                                                 .document(classId)
                                                 .set(classUpdate, SetOptions.merge())
                                                 .addOnSuccessListener(aVoid -> {
-                                                    // Record the attendance
                                                     db.collection("attendRecord")
-                                                            .document(userId + "_" + classId) // Use classId in document ID
+                                                            .document(userId + "_" + classId)
                                                             .set(attendanceRecord, SetOptions.merge())
                                                             .addOnSuccessListener(aVoid2 -> {
                                                                 Log.d(TAG, "Time in recorded successfully!");
@@ -287,9 +282,8 @@ public class FacultyScheduleTimeIn extends Fragment {
                                 Log.e(TAG, "Error fetching class document", e);
                             });
                 } else {
-                    String errorMessage = "Time in is not allowed. Current time: " + timeFormat12Hour.format(currentTime);
-                    Log.e(TAG, errorMessage);
-                    Toast.makeText(getContext(), errorMessage, Toast.LENGTH_SHORT).show();
+                    Log.e(TAG, "Time in is not allowed. Class has ended.");
+                    Toast.makeText(getContext(), "Class has already ended", Toast.LENGTH_SHORT).show();
                 }
 
             } catch (ParseException e) {
@@ -300,6 +294,8 @@ public class FacultyScheduleTimeIn extends Fragment {
             Toast.makeText(getContext(), "User not authenticated", Toast.LENGTH_SHORT).show();
         }
     }
+
+
 
     private void showPopup() {
         View popupView = getLayoutInflater().inflate(R.layout.popup_timein, null);
@@ -333,6 +329,50 @@ public class FacultyScheduleTimeIn extends Fragment {
             }
         });
     }
+
+    private void autoMarkAbsent(String classId, String className) {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+        // Retrieve all users who should have attended the class
+        db.collection("users")
+                .whereEqualTo("role", "Student") // Assuming you have a role field to filter students
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    for (QueryDocumentSnapshot documentSnapshot : queryDocumentSnapshots) {
+                        String userId = documentSnapshot.getId(); // Assuming userId is the document ID
+
+                        // Check if an attendance record exists for this user in the current class
+                        db.collection("attendRecord")
+                                .document(userId + "_" + classId)
+                                .get()
+                                .addOnSuccessListener(attendRecordSnapshot -> {
+                                    if (!attendRecordSnapshot.exists()) {
+                                        // If no attendance record, mark the user as Absent
+                                        Map<String, Object> absentRecord = new HashMap<>();
+                                        absentRecord.put("userId", userId);
+                                        absentRecord.put("className", className);
+                                        absentRecord.put("status", "Absent");
+                                        absentRecord.put("timeIn", null); // No time-in
+                                        absentRecord.put("classId", classId);
+
+                                        db.collection("attendRecord")
+                                                .document(userId + "_" + classId)
+                                                .set(absentRecord, SetOptions.merge())
+                                                .addOnSuccessListener(aVoid -> {
+                                                    Log.d(TAG, "User marked as Absent successfully: " + userId);
+                                                })
+                                                .addOnFailureListener(e -> {
+                                                    Log.e(TAG, "Error marking user as Absent", e);
+                                                });
+                                    }
+                                });
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error fetching users", e);
+                });
+    }
+
 
     private void navigateToFacultyScheduleTimeout() {
         ((FacultyDashboard) getActivity()).hideBottomNavigation();
