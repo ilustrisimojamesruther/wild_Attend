@@ -184,117 +184,149 @@ public class FacultyScheduleTimeIn extends Fragment {
     private void timeIn() {
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
         if (currentUser != null) {
-            String userId = currentUser.getUid();
-            String className = mParam1; // Class name
-            String startTime = mParam2; // Start time in "hh:mm a" format from Firebase
-            String endTime = mParam3; // End time in "hh:mm a" format from Firebase
-            Date timestamp = new Date(); // Current timestamp
+            final String userId = currentUser.getUid(); // Declare as final
+            final String className = mParam1; // Class name
+            final String startTime = mParam2; // Start time in "hh:mm a" format from Firebase
+            final String endTime = mParam3; // End time in "hh:mm a" format from Firebase
+            final Date timestamp = new Date(); // Current timestamp
 
-            SimpleDateFormat fullDateFormat12Hour = new SimpleDateFormat("yyyy-MM-dd hh:mm a", Locale.getDefault()); // For parsing 12-hour format with AM/PM
+            SimpleDateFormat fullDateFormat12Hour = new SimpleDateFormat("yyyy-MM-dd hh:mm a", Locale.getDefault());
+            SimpleDateFormat timeFormat12Hour = new SimpleDateFormat("hh:mm a", Locale.getDefault());
 
-            try {
-                // Get today's date
-                String today = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
+            // Get today's date and current day of the week
+            final String today = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
+            Calendar calendar = Calendar.getInstance();
+            int dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK);
 
-                // Combine today's date with start and end times for parsing (12-hour format with AM/PM)
-                Date startDate = fullDateFormat12Hour.parse(today + " " + startTime); // Full start time in 12-hour format
-                Date endDate = fullDateFormat12Hour.parse(today + " " + endTime); // Full end time in 12-hour format
-
-                // Check if endDate is before startDate, which implies it goes to the next day
-                if (endDate.before(startDate)) {
-                    Calendar calendar = Calendar.getInstance();
-                    calendar.setTime(endDate);
-                    calendar.add(Calendar.DATE, 1); // Move endDate to the next day
-                    endDate = calendar.getTime();
-                }
-
-                // Current time
-                Date currentTime = new Date();
-
-                // Calculate 15 minutes after start time
-                Date fifteenMinutesLate = new Date(startDate.getTime() + 15 * 60 * 1000);
-
-                // Calculate 30 minutes after start time
-                Date thirtyMinutesLate = new Date(startDate.getTime() + 30 * 60 * 1000);
-
-                // Determine the user's status
-                String status;
-                if (currentTime.after(thirtyMinutesLate)) {
-                    status = "Absent";
-                } else if (currentTime.after(fifteenMinutesLate)) {
-                    status = "Late";
-                } else {
-                    status = "On-Time";
-                }
-
-                // Ensure time-in is within the allowed window (up to the end time)
-                if (currentTime.before(endDate)) {
-                    FirebaseFirestore db = FirebaseFirestore.getInstance();
-
-                    db.collection("classes")
-                            .whereEqualTo("classCode", className)
-                            .get()
-                            .addOnSuccessListener(queryDocumentSnapshots -> {
-                                if (!queryDocumentSnapshots.isEmpty()) {
-                                    DocumentSnapshot classDocument = queryDocumentSnapshots.getDocuments().get(0);
-                                    String classId = classDocument.getId(); // Get classId from document ID
-
-                                    Boolean ongoing = classDocument.getBoolean("Ongoing");
-                                    if (ongoing == null || !ongoing) {
-                                        Map<String, Object> attendanceRecord = new HashMap<>();
-                                        attendanceRecord.put("userId", userId);
-                                        attendanceRecord.put("className", className);
-                                        attendanceRecord.put("status", status);
-                                        attendanceRecord.put("timeIn", timestamp);
-                                        attendanceRecord.put("classId", classId);
-
-                                        Map<String, Object> classUpdate = new HashMap<>();
-                                        classUpdate.put("Ongoing", true);
-
-                                        db.collection("classes")
-                                                .document(classId)
-                                                .set(classUpdate, SetOptions.merge())
-                                                .addOnSuccessListener(aVoid -> {
-                                                    db.collection("attendRecord")
-                                                            .document(userId + "_" + classId)
-                                                            .set(attendanceRecord, SetOptions.merge())
-                                                            .addOnSuccessListener(aVoid2 -> {
-                                                                Log.d(TAG, "Time in recorded successfully!");
-                                                                showPopup();
-                                                            })
-                                                            .addOnFailureListener(e -> {
-                                                                Log.e(TAG, "Error recording time in", e);
-                                                            });
-                                                })
-                                                .addOnFailureListener(e -> {
-                                                    Log.e(TAG, "Error updating class document", e);
-                                                });
-                                    } else {
-                                        Log.e(TAG, "Class is already ongoing");
-                                        Toast.makeText(getContext(), "Class is already ongoing", Toast.LENGTH_SHORT).show();
-                                    }
-                                } else {
-                                    Log.e(TAG, "Class document not found");
-                                    Toast.makeText(getContext(), "Class document not found", Toast.LENGTH_SHORT).show();
-                                }
-                            })
-                            .addOnFailureListener(e -> {
-                                Log.e(TAG, "Error fetching class document", e);
-                            });
-                } else {
-                    Log.e(TAG, "Time in is not allowed. Class has ended.");
-                    Toast.makeText(getContext(), "Class has already ended", Toast.LENGTH_SHORT).show();
-                }
-
-            } catch (ParseException e) {
-                Log.e(TAG, "Error parsing time", e);
+            // Convert dayOfWeek to string to match Firestore days map
+            final String currentDay; // Declare as final
+            switch (dayOfWeek) {
+                case Calendar.MONDAY: currentDay = "Monday"; break;
+                case Calendar.TUESDAY: currentDay = "Tuesday"; break;
+                case Calendar.WEDNESDAY: currentDay = "Wednesday"; break;
+                case Calendar.THURSDAY: currentDay = "Thursday"; break;
+                case Calendar.FRIDAY: currentDay = "Friday"; break;
+                case Calendar.SATURDAY: currentDay = "Saturday"; break;
+                case Calendar.SUNDAY: currentDay = "Sunday"; break;
+                default: currentDay = ""; // Handle default case
             }
+
+            // Check if class is scheduled today
+            FirebaseFirestore db = FirebaseFirestore.getInstance();
+            db.collection("classes")
+                    .whereEqualTo("classCode", className)
+                    .get()
+                    .addOnSuccessListener(queryDocumentSnapshots -> {
+                        if (!queryDocumentSnapshots.isEmpty()) {
+                            DocumentSnapshot classDocument = queryDocumentSnapshots.getDocuments().get(0);
+                            Boolean isScheduledToday = classDocument.getBoolean("days." + currentDay);
+
+                            if (isScheduledToday != null && isScheduledToday) {
+                                try {
+                                    // Combine today's date with start and end times for parsing
+                                    Date startDate = fullDateFormat12Hour.parse(today + " " + startTime);
+                                    Date endDate = fullDateFormat12Hour.parse(today + " " + endTime);
+
+                                    // Check if endDate is before startDate
+                                    if (endDate.before(startDate)) {
+                                        Calendar calendarEnd = Calendar.getInstance();
+                                        calendarEnd.setTime(endDate);
+                                        calendarEnd.add(Calendar.DATE, 1);
+                                        endDate = calendarEnd.getTime();
+                                    }
+
+                                    // Current time
+                                    final Date currentTime = new Date(); // Declare as final
+
+                                    // Calculate 15 minutes before, 15 minutes late, and 30 minutes late from start time
+                                    Date fifteenMinutesEarly = new Date(startDate.getTime() - 15 * 60 * 1000);
+                                    Date fifteenMinutesLate = new Date(startDate.getTime() + 15 * 60 * 1000);
+                                    Date thirtyMinutesLate = new Date(startDate.getTime() + 30 * 60 * 1000);
+
+                                    // Log the times in 12-hour format with AM/PM
+                                    Log.d("FacultyScheduleTimeIn", "Start time (12-hour): " + timeFormat12Hour.format(startDate));
+                                    Log.d("FacultyScheduleTimeIn", "End time (12-hour): " + timeFormat12Hour.format(endDate));
+                                    Log.d("FacultyScheduleTimeIn", "Fifteen minutes early: " + timeFormat12Hour.format(fifteenMinutesEarly));
+                                    Log.d("FacultyScheduleTimeIn", "Fifteen minutes late: " + timeFormat12Hour.format(fifteenMinutesLate));
+                                    Log.d("FacultyScheduleTimeIn", "Thirty minutes late: " + timeFormat12Hour.format(thirtyMinutesLate));
+                                    Log.d("FacultyScheduleTimeIn", "Current time: " + timeFormat12Hour.format(currentTime));
+
+                                    // Determine the user's status
+                                    String status;
+                                    if (currentTime.after(thirtyMinutesLate)) {
+                                        status = "Absent";
+                                    } else if (currentTime.after(fifteenMinutesLate)) {
+                                        status = "Late";
+                                    } else if (currentTime.after(fifteenMinutesEarly) && currentTime.before(fifteenMinutesLate)) {
+                                        status = "On-Time";
+                                    } else {
+                                        Log.e(TAG, "Time in is not allowed. Outside the allowed window.");
+                                        Toast.makeText(getContext(), "Time in is not allowed. You can time in 15 minutes early until the class end time.", Toast.LENGTH_SHORT).show();
+                                        return;
+                                    }
+
+                                    // Ensure time-in is within the allowed window (15 minutes early to end time)
+                                    if (currentTime.before(endDate)) {
+                                        // Proceed with recording the time-in
+                                        String classId = classDocument.getId(); // Get classId from document ID
+                                        Boolean ongoing = classDocument.getBoolean("Ongoing");
+                                        if (ongoing == null || !ongoing) {
+                                            Map<String, Object> attendanceRecord = new HashMap<>();
+                                            attendanceRecord.put("userId", userId);
+                                            attendanceRecord.put("className", className);
+                                            attendanceRecord.put("status", status);
+                                            attendanceRecord.put("timeIn", timestamp);
+                                            attendanceRecord.put("classId", classId);
+
+                                            Map<String, Object> classUpdate = new HashMap<>();
+                                            classUpdate.put("Ongoing", true);
+
+                                            db.collection("classes")
+                                                    .document(classId)
+                                                    .set(classUpdate, SetOptions.merge())
+                                                    .addOnSuccessListener(aVoid -> {
+                                                        db.collection("attendRecord")
+                                                                .document(userId + "_" + classId)
+                                                                .set(attendanceRecord, SetOptions.merge())
+                                                                .addOnSuccessListener(aVoid2 -> {
+                                                                    Log.d(TAG, "Time in recorded successfully!");
+                                                                    showPopup();
+                                                                })
+                                                                .addOnFailureListener(e -> {
+                                                                    Log.e(TAG, "Error recording time in", e);
+                                                                });
+                                                    })
+                                                    .addOnFailureListener(e -> {
+                                                        Log.e(TAG, "Error updating class document", e);
+                                                    });
+                                        } else {
+                                            Log.e(TAG, "Class is already ongoing");
+                                            Toast.makeText(getContext(), "Class is already ongoing", Toast.LENGTH_SHORT).show();
+                                        }
+                                    } else {
+                                        Log.e(TAG, "Class has already ended.");
+                                        Toast.makeText(getContext(), "Class has already ended", Toast.LENGTH_SHORT).show();
+                                    }
+                                } catch (ParseException e) {
+                                    Log.e(TAG, "Error parsing time", e);
+                                }
+                            } else {
+                                Log.e(TAG, "Class is not scheduled for today.");
+                                Toast.makeText(getContext(), "Class is not scheduled for today.", Toast.LENGTH_SHORT).show();
+                            }
+                        } else {
+                            Log.e(TAG, "Class document not found");
+                            Toast.makeText(getContext(), "Class document not found", Toast.LENGTH_SHORT).show();
+                        }
+                    })
+                    .addOnFailureListener(e -> {
+                        Log.e(TAG, "Error fetching class document", e);
+                    });
         } else {
             Log.e(TAG, "User not authenticated");
             Toast.makeText(getContext(), "User not authenticated", Toast.LENGTH_SHORT).show();
         }
     }
-
 
 
     private void showPopup() {

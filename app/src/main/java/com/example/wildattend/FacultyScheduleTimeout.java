@@ -353,10 +353,6 @@ public class FacultyScheduleTimeout extends Fragment {
         });
     }
 
-
-
-
-
     private static class FacultyLoadImageTask extends AsyncTask<String, Void, Bitmap> {
         private final WeakReference<ImageView> imageViewWeakReference;
 
