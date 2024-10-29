@@ -281,13 +281,16 @@ public class FacultyScheduleTimeIn extends Fragment {
                                             Map<String, Object> classUpdate = new HashMap<>();
                                             classUpdate.put("Ongoing", true);
 
+                                            // Update class document to mark it as ongoing
                                             db.collection("classes")
                                                     .document(classId)
                                                     .set(classUpdate, SetOptions.merge())
                                                     .addOnSuccessListener(aVoid -> {
+                                                        // Use a unique document ID for the attendance record
+                                                        String attendanceId = userId + "_" + classId + "_" + System.currentTimeMillis(); // Unique ID based on userId and timestamp
                                                         db.collection("attendRecord")
-                                                                .document(userId + "_" + classId)
-                                                                .set(attendanceRecord, SetOptions.merge())
+                                                                .document(attendanceId) // Create a new document with the unique ID
+                                                                .set(attendanceRecord)
                                                                 .addOnSuccessListener(aVoid2 -> {
                                                                     Log.d(TAG, "Time in recorded successfully!");
                                                                     showPopup();
@@ -327,7 +330,6 @@ public class FacultyScheduleTimeIn extends Fragment {
             Toast.makeText(getContext(), "User not authenticated", Toast.LENGTH_SHORT).show();
         }
     }
-
 
     private void showPopup() {
         View popupView = getLayoutInflater().inflate(R.layout.popup_timein, null);
