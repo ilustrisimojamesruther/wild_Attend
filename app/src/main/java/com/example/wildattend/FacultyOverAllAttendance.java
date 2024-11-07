@@ -27,6 +27,7 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
+import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QuerySnapshot;
 
 import java.io.IOException;
@@ -158,6 +159,7 @@ public class FacultyOverAllAttendance extends Fragment {
 
             db.collection("attendRecord")
                     .whereEqualTo("userId", userId)
+                    .orderBy("timeIn", Query.Direction.DESCENDING) // Sorting by timeIn in descending order
                     .addSnapshotListener(new EventListener<QuerySnapshot>() {
                         @Override
                         public void onEvent(@Nullable QuerySnapshot queryDocumentSnapshots, @Nullable FirebaseFirestoreException e) {
@@ -175,9 +177,8 @@ public class FacultyOverAllAttendance extends Fragment {
 
                             Log.d(TAG, "Data fetched successfully, count: " + queryDocumentSnapshots.size());
 
-                            tableLayout.removeAllViews(); // Clear existing rows
+                            tableLayout.removeAllViews();
 
-                            // Add header row
                             TableRow headerRow = new TableRow(requireContext());
                             headerRow.addView(createTextView("Course"));
                             headerRow.addView(createTextView("Day"));
@@ -185,7 +186,6 @@ public class FacultyOverAllAttendance extends Fragment {
                             headerRow.addView(createTextView("Status"));
                             tableLayout.addView(headerRow);
 
-                            // Initialize pagination data
                             allRecords.clear();
                             allRecords.addAll(queryDocumentSnapshots.getDocuments());
                             totalPages = (int) Math.ceil((double) allRecords.size() / pageSize);
@@ -204,17 +204,14 @@ public class FacultyOverAllAttendance extends Fragment {
             return;
         }
 
-        // Remove all child views from TableLayout except the header
         int childCount = tableLayout.getChildCount();
         if (childCount > 1) {
             tableLayout.removeViews(1, childCount - 1);
         }
 
-        // Calculate start and end indices for pagination
         int start = currentPage * pageSize;
         int end = Math.min(start + pageSize, allRecords.size());
 
-        // Add data rows
         for (int i = start; i < end; i++) {
             DocumentSnapshot documentSnapshot = allRecords.get(i);
             String className = documentSnapshot.getString("className");
@@ -231,11 +228,9 @@ public class FacultyOverAllAttendance extends Fragment {
             tableLayout.addView(row);
         }
 
-        // Update button states
         prevPageButton.setEnabled(currentPage > 0);
         nextPageButton.setEnabled(currentPage < totalPages - 1);
     }
-
 
     private void onPrevPage() {
         if (currentPage > 0) {
