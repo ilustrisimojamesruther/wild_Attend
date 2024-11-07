@@ -25,6 +25,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.SetOptions;
 
@@ -173,6 +174,49 @@ public class StudentScheduleTimeout extends Fragment {
         }
     }
 
+//    private void timeOut() {
+//        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+//        if (currentUser != null) {
+//            String userId = currentUser.getUid();
+//            String className = mParam1; // Assuming you have the class code available
+//            Date timestamp = new Date(); // Get current timestamp
+//
+//            FirebaseFirestore db = FirebaseFirestore.getInstance();
+//
+//            // Fetch the class document using the classCode
+//            db.collection("classes")
+//                    .whereEqualTo("classCode", className)
+//                    .get()
+//                    .addOnSuccessListener(queryDocumentSnapshots -> {
+//                        if (!queryDocumentSnapshots.isEmpty()) {
+//                            DocumentSnapshot classDocument = queryDocumentSnapshots.getDocuments().get(0);
+//                            String classId = classDocument.getId(); // Get classId
+//                            Boolean ongoing = classDocument.getBoolean("Ongoing"); // Check the ongoing status
+//
+//                            // Proceed if ongoing is false
+//                            if (ongoing != null && !ongoing) {
+//                                Log.d(TAG, "Ongoing status is false. Allowing student to time out.");
+//                                // Allow the student to time out
+//                                showTimeoutPopup(userId, classId, timestamp);
+//                            } else {
+//                                Log.d(TAG, "Ongoing status is true. Student cannot time out yet.");
+//                                Toast.makeText(getContext(), "You cannot time out until the class is finished.", Toast.LENGTH_LONG).show();
+//                            }
+//                        } else {
+//                            Log.e(TAG, "Class document not found for class code: " + className);
+//                            Toast.makeText(getContext(), "Class document not found.", Toast.LENGTH_SHORT).show();
+//                        }
+//                    })
+//                    .addOnFailureListener(e -> {
+//                        Log.e(TAG, "Error fetching class document", e);
+//                        Toast.makeText(getContext(), "Error fetching class document.", Toast.LENGTH_SHORT).show();
+//                    });
+//        } else {
+//            Log.e(TAG, "User not authenticated");
+//            Toast.makeText(getContext(), "User not authenticated", Toast.LENGTH_SHORT).show();
+//        }
+//    }
+
     private void timeOut() {
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
         if (currentUser != null) {
@@ -195,8 +239,29 @@ public class StudentScheduleTimeout extends Fragment {
                             // Proceed if ongoing is false
                             if (ongoing != null && !ongoing) {
                                 Log.d(TAG, "Ongoing status is false. Allowing student to time out.");
-                                // Allow the student to time out
-                                showTimeoutPopup(userId, classId, timestamp);
+
+                                // Fetch the latest attendance document with timeIn for this userId and classId
+                                db.collection("attendRecord")
+                                        .whereEqualTo("userId", userId)
+                                        .whereEqualTo("classId", classId)
+                                        .orderBy("timeIn", Query.Direction.DESCENDING) // Order by latest timeIn
+                                        .limit(1) // Get only the most recent document
+                                        .get()
+                                        .addOnSuccessListener(attendanceSnapshots -> {
+                                            if (!attendanceSnapshots.isEmpty()) {
+                                                DocumentSnapshot latestAttendanceDoc = attendanceSnapshots.getDocuments().get(0);
+
+                                                // Call showTimeoutPopup with the correct document ID
+                                                showTimeoutPopup(latestAttendanceDoc.getId(), timestamp);
+                                            } else {
+                                                Log.e(TAG, "Current attendance document not found for user: " + userId);
+                                                Toast.makeText(getContext(), "Current attendance document not found.", Toast.LENGTH_SHORT).show();
+                                            }
+                                        })
+                                        .addOnFailureListener(e -> {
+                                            Log.e(TAG, "Error fetching current attendance document", e);
+                                            Toast.makeText(getContext(), "Error fetching current attendance document.", Toast.LENGTH_SHORT).show();
+                                        });
                             } else {
                                 Log.d(TAG, "Ongoing status is true. Student cannot time out yet.");
                                 Toast.makeText(getContext(), "You cannot time out until the class is finished.", Toast.LENGTH_LONG).show();
@@ -217,8 +282,7 @@ public class StudentScheduleTimeout extends Fragment {
     }
 
 
-
-    private void showTimeoutPopup(String userId, String classId, Date timestamp) {
+    private void showTimeoutPopup(String attendanceId, Date timestamp) {
         // Inflate the layout for the popup
         View popupView = LayoutInflater.from(getContext()).inflate(R.layout.popup_timeout_confirm, null);
 
@@ -237,16 +301,14 @@ public class StudentScheduleTimeout extends Fragment {
             // Record the time-out
             Map<String, Object> timeoutData = new HashMap<>();
             timeoutData.put("timeOut", timestamp);
-            timeoutData.put("message", "I'm here on time"); // Set the default message
-            timeoutData.put("status", "On-Time"); // Set the default status
 
             FirebaseFirestore db = FirebaseFirestore.getInstance();
 
             db.collection("attendRecord")
-                    .document(userId + "_" + classId) // Update the same document using userId and classId
+                    .document(attendanceId) // Use the correct document ID
                     .set(timeoutData, SetOptions.merge())
                     .addOnSuccessListener(aVoid -> {
-                        Log.d(TAG, "Time out recorded successfully with message: " + timeoutData.get("message"));
+                        Log.d(TAG, "Time out recorded successfully with message: " + timeoutData.get("timeOut"));
                         Toast.makeText(getContext(), "Successfully timed out!", Toast.LENGTH_SHORT).show();
 
                         // Navigate to StudentSchedule

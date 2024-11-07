@@ -214,7 +214,7 @@ public class StudentOverAllAttendance extends Fragment {
         // Add data rows
         for (int i = start; i < end; i++) {
             DocumentSnapshot documentSnapshot = allRecords.get(i);
-            String className = documentSnapshot.getString("classCode"); // Assuming field name is classCode
+            String className = documentSnapshot.getString("className"); // Assuming field name is className
             String status = documentSnapshot.getString("status");
             Timestamp timeInTimestamp = documentSnapshot.getTimestamp("timeIn");
             String timeIn = formatTimestamp(timeInTimestamp);
@@ -263,7 +263,7 @@ public class StudentOverAllAttendance extends Fragment {
     private void filterRecords(String query) {
         displayedRecords.clear();
         for (DocumentSnapshot document : allRecords) {
-            String className = document.getString("classCode");
+            String className = document.getString("className");
             String status = document.getString("status");
             Timestamp timeInTimestamp = document.getTimestamp("timeIn");
             String day = getDayFromTimestamp(timeInTimestamp);

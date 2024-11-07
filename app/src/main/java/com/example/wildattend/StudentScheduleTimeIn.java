@@ -36,8 +36,12 @@ import java.io.InputStream;
 import java.lang.ref.WeakReference;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 public class StudentScheduleTimeIn extends Fragment {
@@ -186,14 +190,15 @@ public class StudentScheduleTimeIn extends Fragment {
             String className = mParam1; // Retrieve class code from arguments
             String roomLocation = mParam5;
             String classDesc = mParam4;
-            String startTime = mParam2; // Retrieve class time from arguments
-            String endTime = mParam3;
-            String message = "I'm here on time"; // Default message, you can customize this
+            String startTime = mParam2; // Retrieve class start time from arguments
+            String endTime = mParam3; // Retrieve class end time from arguments
+            String message = "I'm here on time"; // Default message
             Date timestamp = new Date(); // Get current timestamp
 
             FirebaseFirestore db = FirebaseFirestore.getInstance();
 
             Log.d(TAG, "Class name: " + className); // Add this debug log
+//            Log.d(TAG ,"Current Time: " + currentTime);
 
             // Step 1: Fetch the class ID using the class code
             db.collection("classes")
@@ -201,43 +206,105 @@ public class StudentScheduleTimeIn extends Fragment {
                     .get()
                     .addOnSuccessListener(queryDocumentSnapshots -> {
                         if (!queryDocumentSnapshots.isEmpty()) {
-                               // Assuming classCode is unique and we get only one document
+                            // Assuming classCode is unique and we get only one document
                             DocumentSnapshot classDocument = queryDocumentSnapshots.getDocuments().get(0);
                             String classId = classDocument.getId(); // Retrieve class ID
                             Log.d(TAG, "Class ID: " + classId);
 
                             Boolean ongoing = classDocument.getBoolean("Ongoing");
                             if (ongoing != null && ongoing) {
-                                // Class is ongoing, allow the student to time in
-                                // Create a map to hold the attendance data
-                                Map<String, Object> attendanceRecord = new HashMap<>();
-                                attendanceRecord.put("userId", userId);
-                                attendanceRecord.put("className", className); // Add className to the record
-                                attendanceRecord.put("message", message);
-                                attendanceRecord.put("status", "On-Time");
-                                attendanceRecord.put("timeIn", timestamp);
-                                attendanceRecord.put("classId", classId); // Use class ID instead of classCode
+                                try {
+                                    // Time comparison similar to FacultyScheduleTimeIn
+                                    SimpleDateFormat fullDateFormat12Hour = new SimpleDateFormat("yyyy-MM-dd hh:mm a", Locale.getDefault());
+                                    SimpleDateFormat timeFormat12Hour = new SimpleDateFormat("hh:mm a", Locale.getDefault());
 
-                                // Use set with SetOptions.merge() to update the document if it exists or create it if it doesn't
-                                db.collection("attendRecord")
-                                        .document(userId + "_" + classId) // Use class ID in document naming
-                                        .set(attendanceRecord, SetOptions.merge())
-                                        .addOnSuccessListener(aVoid -> {
-                                            Log.d(TAG, "Time in recorded successfully!");
-                                            // Show the popup when time in is recorded successfully
-                                            showPopup();
-                                        })
-                                        .addOnFailureListener(e -> {
-                                            Log.e(TAG, "Error recording time in", e);
-                                            // Handle error
-                                        });
+                                    // Get today's date for timestamp comparison
+                                    final String today = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
+
+                                    // Parse the start and end times
+                                    Date startDate = fullDateFormat12Hour.parse(today + " " + startTime);
+                                    Date endDate = fullDateFormat12Hour.parse(today + " " + endTime);
+
+                                    // Check if endDate is before startDate (handle overnight classes)
+                                    if (endDate.before(startDate)) {
+                                        Calendar calendarEnd = Calendar.getInstance();
+                                        calendarEnd.setTime(endDate);
+                                        calendarEnd.add(Calendar.DATE, 1);
+                                        endDate = calendarEnd.getTime();
+                                    }
+
+                                    // Current time for comparison
+                                    final Date currentTime = new Date();
+
+                                    // Calculate 15 minutes before start time, 15 minutes late, and 30 minutes late
+                                    Date fifteenMinutesEarly = new Date(startDate.getTime() - 15 * 60 * 1000);
+                                    Date fifteenMinutesLate = new Date(startDate.getTime() + 15 * 60 * 1000);
+                                    Date thirtyMinutesLate = new Date(startDate.getTime() + 30 * 60 * 1000);
+
+                                    // Log the times in 12-hour format for debugging
+                                    Log.d(TAG, "Start time (12-hour): " + timeFormat12Hour.format(startDate));
+                                    Log.d(TAG, "End time (12-hour): " + timeFormat12Hour.format(endDate));
+                                    Log.d(TAG, "Fifteen minutes early: " + timeFormat12Hour.format(fifteenMinutesEarly));
+                                    Log.d(TAG, "Fifteen minutes late: " + timeFormat12Hour.format(fifteenMinutesLate));
+                                    Log.d(TAG, "Thirty minutes late: " + timeFormat12Hour.format(thirtyMinutesLate));
+                                    Log.d(TAG, "Current time: " + timeFormat12Hour.format(currentTime));
+
+                                    // Determine student's status (On-Time, Late, Absent)
+                                    String status;
+                                    if (currentTime.after(thirtyMinutesLate)) {
+                                        status = "Absent";
+                                    } else if (currentTime.after(fifteenMinutesLate)) {
+                                        status = "Late";
+                                    } else if (currentTime.after(fifteenMinutesEarly) && currentTime.before(fifteenMinutesLate)) {
+                                        status = "On-Time";
+                                    } else {
+                                        Log.e(TAG, "Time in is not allowed. Outside the allowed window.");
+                                        Toast.makeText(getContext(), "Time in is not allowed. You can time in 15 minutes early until the class end time.", Toast.LENGTH_SHORT).show();
+                                        return;
+                                    }
+
+                                    // Ensure time-in is within the allowed window (15 minutes early to end time)
+                                    if (currentTime.before(endDate)) {
+                                        // Proceed with recording the time-in
+                                        Map<String, Object> attendanceRecord = new HashMap<>();
+                                        attendanceRecord.put("userId", userId);
+                                        attendanceRecord.put("className", className);
+                                        attendanceRecord.put("message", message);
+                                        attendanceRecord.put("status", status); // Use calculated status
+                                        attendanceRecord.put("timeIn", timestamp);
+                                        attendanceRecord.put("classId", classId); // Use class ID
+
+                                        // Use set with SetOptions.merge() to update the document if it exists or create it if it doesn't
+                                        String attendanceId = userId + "_" + classId + "_" + System.currentTimeMillis(); // Unique ID based on userId and timestamp
+
+                                        db.collection("attendRecord")
+//                                                .document(userId + "_" + classId) // Use class ID in document naming
+//                                                .set(attendanceRecord, SetOptions.merge())
+                                                .document(attendanceId) // Create a new document with the unique ID
+                                                .set(attendanceRecord)
+                                                .addOnSuccessListener(aVoid -> {
+                                                    Log.d(TAG, "Time in recorded successfully!");
+                                                    // Show the popup when time in is recorded successfully
+                                                    showPopup();
+                                                })
+                                                .addOnFailureListener(e -> {
+                                                    Log.e(TAG, "Error recording time in", e);
+                                                    // Handle error
+                                                });
+                                    } else {
+                                        Log.e(TAG, "Class has already ended.");
+                                        Toast.makeText(getContext(), "Class has already ended", Toast.LENGTH_SHORT).show();
+                                    }
+                                } catch (ParseException e) {
+                                    Log.e(TAG, "Error parsing time", e);
+                                }
                             } else {
-                                // Class is not ongoing, inform the user
+                                // Class is not ongoing, inform the student
                                 Log.d(TAG, "Class is not ongoing. Cannot time in.");
                                 Toast.makeText(getContext(), "Class is not ongoing. Cannot time in.", Toast.LENGTH_LONG).show();
                             }
                         } else {
-                            Log.e(TAG, "Class document does not exist for class: " + className); // Add this debug log
+                            Log.e(TAG, "Class document does not exist for class: " + className);
                             Toast.makeText(getContext(), "Class does not exist.", Toast.LENGTH_LONG).show();
                         }
                     })
@@ -250,6 +317,7 @@ public class StudentScheduleTimeIn extends Fragment {
             Toast.makeText(getContext(), "User not authenticated.", Toast.LENGTH_LONG).show();
         }
     }
+
 
 
     private void showPopup() {
