@@ -16,6 +16,7 @@ import android.widget.PopupWindow;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.widget.AppCompatButton;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
@@ -128,6 +129,14 @@ public class StudentScheduleTimeout extends Fragment {
             classColorCircle.setBackground(getResources().getDrawable(R.drawable.circle_background));
 
         }
+
+        // Disable back navigation
+        requireActivity().getOnBackPressedDispatcher().addCallback(getViewLifecycleOwner(), new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                Toast.makeText(getContext(), "You cannot go back until you time out.", Toast.LENGTH_SHORT).show();
+            }
+        });
 
         timeoutButtonStudent.setOnClickListener(new View.OnClickListener() {
             @Override
