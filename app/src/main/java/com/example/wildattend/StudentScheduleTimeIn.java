@@ -1,12 +1,13 @@
 package com.example.wildattend;
 
+import android.Manifest;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.content.res.ColorStateList;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
-import android.net.wifi.WifiInfo;
+import android.net.DhcpInfo;
 import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -22,7 +23,6 @@ import android.widget.LinearLayout;
 import android.widget.PopupWindow;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.Manifest;
 
 import androidx.appcompat.widget.AppCompatButton;
 import androidx.core.app.ActivityCompat;
@@ -200,69 +200,83 @@ public class StudentScheduleTimeIn extends Fragment {
 
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
         if (currentUser != null) {
-            String userId = currentUser.getUid();
-            String className = mParam1; // Retrieve class code from arguments
-            String roomLocation = mParam5;
-            String classDesc = mParam4;
-            String startTime = mParam2; // Retrieve class start time from arguments
-            String endTime = mParam3; // Retrieve class end time from arguments
-            String message = "I'm here on time"; // Default message
-            Date timestamp = new Date(); // Get current timestamp
+            final String userId = currentUser.getUid();
+            final String className = mParam1; // Retrieve class code from arguments
+            final String roomLocation = mParam5;
+            final String classDesc = mParam4;
+            final String startTime = mParam2; // Retrieve class start time from arguments
+            final String endTime = mParam3; // Retrieve class end time from arguments
+            final String message = "I'm here on time"; // Default message
+            final Date timestamp = new Date(); // Get current timestamp
 
             FirebaseFirestore db = FirebaseFirestore.getInstance();
 
-            // Retrieve the device's connected Wi-Fi SSID
+            // Retrieve the device's connected Wi-Fi IP address (gateway)
             WifiManager wifiManager = (WifiManager) requireContext().getApplicationContext().getSystemService(Context.WIFI_SERVICE);
-            WifiInfo wifiInfo = wifiManager.getConnectionInfo();
-            String connectedSSIDRaw = wifiInfo.getSSID();
-            final String connectedSSID = connectedSSIDRaw.replaceAll("\"", ""); // Remove quotes
+            DhcpInfo dhcpInfo = wifiManager.getDhcpInfo();
+            final String connectedIpAddress;
 
-            Log.d(TAG, "Connected Wi-Fi SSID: " + connectedSSID);
+            if (dhcpInfo != null) {
+                int gateway = dhcpInfo.gateway;
+                connectedIpAddress = String.format(
+                        "%d.%d.%d.%d",
+                        (gateway & 0xFF),
+                        (gateway >> 8 & 0xFF),
+                        (gateway >> 16 & 0xFF),
+                        (gateway >> 24 & 0xFF)
+                );
+            } else {
+                Log.e(TAG, "Unable to retrieve IP address. Please connect to Wi-Fi.");
+                Toast.makeText(getContext(), "Unable to retrieve Wi-Fi information. Please connect to a Wi-Fi network.", Toast.LENGTH_SHORT).show();
+                return;
+            }
 
-            // Fetch the class document and expected Wi-Fi SSID
+            Log.d(TAG, "Connected Wi-Fi IP Address: " + connectedIpAddress);
+
+            // Fetch the class document and expected Wi-Fi IP address
             db.collection("classes")
                     .whereEqualTo("classCode", className)
                     .get()
                     .addOnSuccessListener(queryDocumentSnapshots -> {
                         if (!queryDocumentSnapshots.isEmpty()) {
                             DocumentSnapshot classDocument = queryDocumentSnapshots.getDocuments().get(0);
-                            String classId = classDocument.getId(); // Retrieve class ID
+                            final String classId = classDocument.getId(); // Retrieve class ID
                             Log.d(TAG, "Class ID: " + classId);
 
                             Boolean ongoing = classDocument.getBoolean("Ongoing");
-                            String expectedSSID = classDocument.getString("ssid"); // Expected SSID stored in Firebase
-                            Log.d(TAG, "Expected Wi-Fi SSID from Firebase: " + expectedSSID);
+                            final String expectedIpAddress = classDocument.getString("ip_address"); // Expected IP address stored in Firebase
+                            Log.d(TAG, "Expected Wi-Fi IP Address from Firebase: " + expectedIpAddress);
 
                             // Check if student is connected to the correct Wi-Fi network
-                            if (connectedSSID != null && connectedSSID.equalsIgnoreCase(expectedSSID)) {
+                            if (connectedIpAddress != null && connectedIpAddress.equals(expectedIpAddress)) {
                                 if (ongoing != null && ongoing) {
                                     try {
-                                        // Time comparison similar to FacultyScheduleTimeIn
-                                        SimpleDateFormat fullDateFormat12Hour = new SimpleDateFormat("yyyy-MM-dd hh:mm a", Locale.getDefault());
-                                        SimpleDateFormat timeFormat12Hour = new SimpleDateFormat("hh:mm a", Locale.getDefault());
+                                        // Time comparison logic
+                                        final SimpleDateFormat fullDateFormat12Hour = new SimpleDateFormat("yyyy-MM-dd hh:mm a", Locale.getDefault());
+                                        final SimpleDateFormat timeFormat12Hour = new SimpleDateFormat("hh:mm a", Locale.getDefault());
 
                                         // Get today's date for timestamp comparison
                                         final String today = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
 
                                         // Parse the start and end times
-                                        Date startDate = fullDateFormat12Hour.parse(today + " " + startTime);
-                                        Date endDate = fullDateFormat12Hour.parse(today + " " + endTime);
+                                        final Date startDate = fullDateFormat12Hour.parse(today + " " + startTime);
+                                        Date endDate = fullDateFormat12Hour.parse(today + " " + endTime); // Mutable variable
 
                                         // Check if endDate is before startDate (handle overnight classes)
                                         if (endDate.before(startDate)) {
                                             Calendar calendarEnd = Calendar.getInstance();
                                             calendarEnd.setTime(endDate);
                                             calendarEnd.add(Calendar.DATE, 1);
-                                            endDate = calendarEnd.getTime();
+                                            endDate = calendarEnd.getTime(); // Reassignment allowed for mutable variables
                                         }
 
                                         // Current time for comparison
                                         final Date currentTime = new Date();
 
                                         // Calculate 15 minutes before start time, 15 minutes late, and 30 minutes late
-                                        Date fifteenMinutesEarly = new Date(startDate.getTime() - 15 * 60 * 1000);
-                                        Date fifteenMinutesLate = new Date(startDate.getTime() + 15 * 60 * 1000);
-                                        Date thirtyMinutesLate = new Date(startDate.getTime() + 30 * 60 * 1000);
+                                        final Date fifteenMinutesEarly = new Date(startDate.getTime() - 15 * 60 * 1000);
+                                        final Date fifteenMinutesLate = new Date(startDate.getTime() + 15 * 60 * 1000);
+                                        final Date thirtyMinutesLate = new Date(startDate.getTime() + 30 * 60 * 1000);
 
                                         // Log the times in 12-hour format for debugging
                                         Log.d(TAG, "Start time (12-hour): " + timeFormat12Hour.format(startDate));
