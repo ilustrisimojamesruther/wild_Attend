@@ -54,30 +54,37 @@
     <!-- First FrameLayout (top-left) -->
     <FrameLayout
         android:id="@+id/frame1"
-        android:layout_width="180dp"
+        android:layout_width="0dp"
         android:layout_height="140dp"
+        app:layout_constraintWidth_percent="0.429"
         android:layout_marginTop="16dp"
-        android:layout_marginStart="16dp"
         android:background="@drawable/border_background_v2"
         app:layout_constraintTop_toBottomOf="@id/topFrameLayout"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toStartOf="@id/guideline_vertical">
+        app:layout_constraintStart_toStartOf="@id/guideline1"
+        app:layout_constraintEnd_toStartOf="@id/guideline2">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent">
+
+            <androidx.constraintlayout.widget.Guideline
+                android:id="@+id/guidelinef1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                app:layout_constraintGuide_percent="0.1" />
 
             <!-- Time In TextView -->
             <TextView
                 android:id="@+id/timeInText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:autoSizeTextType="uniform"
                 android:text="Time In"
                 android:textColor="@color/black"
                 android:textSize="16sp"
-                android:layout_marginTop="16dp"
-                android:layout_marginStart="16dp"
-                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintStart_toStartOf="@id/guidelinef1"
                 app:layout_constraintTop_toTopOf="parent" />
 
             <!-- Time In Value TextView -->
@@ -85,38 +92,38 @@
                 android:id="@+id/timeInValue"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:autoSizeTextType="uniform"
                 android:text="7:30 AM"
                 android:textColor="@color/black"
                 android:textSize="16sp"
-                android:layout_marginTop="8dp"
-                android:layout_marginStart="16dp"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/timeInText"/>
+                app:layout_constraintStart_toStartOf="@id/guidelinef1"
+                app:layout_constraintTop_toBottomOf="@id/timeInText" />
 
             <!-- Checked In Status TextView -->
             <TextView
                 android:id="@+id/checkedInStatus"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:autoSizeTextType="uniform"
                 android:text="@string/checked_in"
                 android:textColor="@color/black"
                 android:textSize="12sp"
-                android:layout_marginTop="8dp"
-                android:layout_marginStart="16dp"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/timeInValue"/>
+                app:layout_constraintStart_toStartOf="@id/guidelinef1"
+                app:layout_constraintTop_toBottomOf="@id/timeInValue" />
 
             <!-- Time In Icon -->
             <ImageView
                 android:id="@+id/timeInIcon"
                 android:layout_width="24dp"
                 android:layout_height="24dp"
-                android:src="@drawable/icon_timein"
+                android:layout_gravity="end"
                 android:layout_marginTop="16dp"
                 android:layout_marginEnd="16dp"
-                android:layout_gravity="end"
+                android:src="@drawable/icon_timein"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="parent"/>
+                app:layout_constraintTop_toTopOf="parent" />
         </androidx.constraintlayout.widget.ConstraintLayout>
     </FrameLayout>
 
@@ -124,18 +131,25 @@
     <!-- Second FrameLayout (top-right) -->
     <FrameLayout
         android:id="@+id/frame2"
-        android:layout_width="180dp"
+        android:layout_width="0dp"
         android:layout_height="140dp"
+        app:layout_constraintWidth_percent="0.429"
         android:layout_marginTop="16dp"
-        android:layout_marginEnd="16dp"
         android:background="@drawable/border_background_v2"
         app:layout_constraintTop_toBottomOf="@id/topFrameLayout"
-        app:layout_constraintStart_toEndOf="@id/guideline_vertical"
-        app:layout_constraintEnd_toEndOf="parent" >
+        app:layout_constraintStart_toStartOf="@id/guideline3"
+        app:layout_constraintEnd_toStartOf="@id/guideline4">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent">
+
+            <androidx.constraintlayout.widget.Guideline
+                android:id="@+id/guidelinef2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                app:layout_constraintGuide_percent="0.1" />
 
             <!-- Time Out TextView -->
             <TextView
@@ -145,9 +159,9 @@
                 android:text="Time Out"
                 android:textColor="@color/black"
                 android:textSize="16sp"
+                android:autoSizeTextType="uniform"
                 android:layout_marginTop="16dp"
-                android:layout_marginStart="16dp"
-                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintStart_toStartOf="@id/guidelinef2"
                 app:layout_constraintTop_toTopOf="parent" />
 
             <!-- Time Out Value TextView -->
@@ -158,9 +172,9 @@
                 android:text="6:30 AM"
                 android:textColor="@color/black"
                 android:textSize="16sp"
+                android:autoSizeTextType="uniform"
                 android:layout_marginTop="8dp"
-                android:layout_marginStart="16dp"
-                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintStart_toStartOf="@id/guidelinef2"
                 app:layout_constraintTop_toBottomOf="@id/timeOutText"/>
 
             <!-- Checked In Status TextView -->
@@ -171,9 +185,9 @@
                 android:text="@string/clock_out"
                 android:textColor="@color/black"
                 android:textSize="12sp"
+                android:autoSizeTextType="uniform"
                 android:layout_marginTop="8dp"
-                android:layout_marginStart="16dp"
-                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintStart_toStartOf="@id/guidelinef2"
                 app:layout_constraintTop_toBottomOf="@id/timeOutValue"/>
 
             <!-- Time Out Icon -->
@@ -195,18 +209,25 @@
     <!-- Third FrameLayout (bottom-left) -->
     <FrameLayout
         android:id="@+id/frame3"
-        android:layout_width="180dp"
+        android:layout_width="0dp"
         android:layout_height="140dp"
+        app:layout_constraintWidth_percent="0.429"
         android:layout_marginTop="16dp"
-        android:layout_marginStart="16dp"
         android:background="@drawable/border_background_v2"
         app:layout_constraintTop_toBottomOf="@id/frame1"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toStartOf="@id/guideline_vertical" >
+        app:layout_constraintStart_toStartOf="@id/guideline1"
+        app:layout_constraintEnd_toStartOf="@id/guideline2" >
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent">
+
+            <androidx.constraintlayout.widget.Guideline
+                android:id="@+id/guidelinef3"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                app:layout_constraintGuide_percent="0.1" />
 
             <!-- Upcoming Class TextView -->
             <TextView
@@ -216,9 +237,9 @@
                 android:text="Upcoming Class"
                 android:textColor="@color/black"
                 android:textSize="16sp"
+                android:autoSizeTextType="uniform"
                 android:layout_marginTop="16dp"
-                android:layout_marginStart="16dp"
-                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintStart_toStartOf="@id/guidelinef3"
                 app:layout_constraintTop_toTopOf="parent" />
 
             <!-- Upcoming Class Time TextView -->
@@ -229,29 +250,34 @@
                 android:text="3:30 PM - 6:00 PM"
                 android:textColor="@color/black"
                 android:textSize="16sp"
+                android:autoSizeTextType="uniform"
                 android:layout_marginTop="8dp"
-                android:layout_marginStart="16dp"
-                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintStart_toStartOf="@id/guidelinef3"
                 app:layout_constraintTop_toBottomOf="@id/upcomingClassText"/>
 
             <!-- Course View -->
+
+            <!-- Course Text -->
+
+            <!-- Course Text -->
+
             <com.google.android.material.textview.MaterialTextView
                 android:id="@+id/courseView"
-                android:layout_width="55dp"
-                android:layout_height="55dp"
-                android:layout_gravity="center_horizontal"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_marginTop="4dp"
                 android:background="@drawable/circle_background"
                 android:gravity="center"
                 android:text="ABC"
-                android:layout_marginTop="8dp"
-                android:layout_marginStart="16dp"
                 android:textColor="@android:color/white"
                 android:textSize="12sp"
                 android:textStyle="bold"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/upcomingValue" />
+                app:layout_constraintHeight_percent="0.43"
+                app:layout_constraintStart_toStartOf="@id/guidelinef3"
+                app:layout_constraintTop_toBottomOf="@id/upcomingValue"
+                app:layout_constraintWidth_percent="0.35" />
 
-            <!-- Course Text -->
+
             <TextView
                 android:id="@+id/courseText"
                 android:layout_width="wrap_content"
@@ -259,6 +285,7 @@
                 android:text="IT342"
                 android:textColor="@android:color/black"
                 android:textSize="14sp"
+                android:autoSizeTextType="uniform"
                 android:layout_marginStart="8dp"
                 app:layout_constraintStart_toEndOf="@id/courseView"
                 app:layout_constraintBaseline_toBaselineOf="@id/courseView" />
@@ -281,38 +308,47 @@
     <!-- Fourth FrameLayout (bottom-right) -->
     <FrameLayout
         android:id="@+id/frame4"
-        android:layout_width="180dp"
+        android:layout_width="0dp"
         android:layout_height="140dp"
+        app:layout_constraintWidth_percent="0.429"
         android:layout_marginTop="16dp"
-        android:layout_marginEnd="16dp"
         android:background="@drawable/border_background_v2"
         app:layout_constraintTop_toBottomOf="@id/frame2"
-        app:layout_constraintStart_toEndOf="@id/guideline_vertical"
-        app:layout_constraintEnd_toEndOf="parent" >
+        app:layout_constraintStart_toStartOf="@id/guideline3"
+        app:layout_constraintEnd_toStartOf="@id/guideline4" >
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent">
+
+            <androidx.constraintlayout.widget.Guideline
+                android:id="@+id/guidelinef4"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                app:layout_constraintGuide_percent="0.1" />
 
             <!-- Attendance TextView -->
             <TextView
                 android:id="@+id/attendanceText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
                 android:layout_marginTop="16dp"
                 android:text="Attendance"
                 android:textColor="@color/black"
                 android:textSize="16sp"
-                app:layout_constraintStart_toStartOf="parent"
+                android:autoSizeTextType="uniform"
+                app:layout_constraintStart_toStartOf="@id/guidelinef4"
                 app:layout_constraintTop_toTopOf="parent" />
 
 
             <!-- Attendance Icon -->
             <com.example.wildattend.FacultyProgressBar
                 android:id="@+id/facultyProgressBar"
-                android:layout_width="80dp"
-                android:layout_height="80dp"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                app:layout_constraintWidth_percent="0.459"
+                app:layout_constraintHeight_percent="0.6"
                 android:layout_marginStart="50dp"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/attendanceText"
@@ -331,6 +367,7 @@
                 android:text="0%"
                 android:textStyle="bold"
                 android:textSize="15sp"
+                android:autoSizeTextType="uniform"
                 android:textColor="@color/black"
                 android:layout_centerInParent="true"
                 app:layout_constraintTop_toTopOf="@id/facultyProgressBar"
@@ -364,16 +401,45 @@
     <!-- ListView for the Attendance Log -->
     <ListView
         android:id="@+id/attendanceLogListView"
-        android:layout_width="380dp"
-        android:layout_height="300dp"
+        android:layout_width="0dp"
+        android:layout_height="290dp"
+        app:layout_constraintWidth_percent="0.92"
         android:layout_marginTop="16dp"
         android:background="@drawable/border_background_v2"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintEnd_toEndOf="@id/guideline4"
         app:layout_constraintHorizontal_bias="0.483"
-        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintStart_toStartOf="@id/guideline1"
         app:layout_constraintTop_toBottomOf="@id/frame4"
         app:layout_constraintVertical_bias="0.0" />
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideline1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.04" />
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideline2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.47" />
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideline3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.52" />
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideline4"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.96" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

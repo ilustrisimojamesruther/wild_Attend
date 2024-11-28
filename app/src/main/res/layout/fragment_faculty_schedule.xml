@@ -11,7 +11,7 @@
         android:id="@+id/profile_image_faculty"
         android:layout_width="100dp"
         android:layout_height="100dp"
-        android:layout_marginTop="100dp"
+        android:layout_marginTop="130dp"
         android:scaleType="centerCrop"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.498"
@@ -56,51 +56,57 @@
 
     <SearchView
         android:id="@+id/searchView"
-        android:layout_width="220dp"
-        android:layout_height="48dp"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintWidth_percent="0.52"
+        app:layout_constraintHeight_percent="0.046"
         android:layout_marginTop="30dp"
         android:queryHint="Search classes"
-        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.170"
-        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintStart_toStartOf="@id/guideline1"
         app:layout_constraintTop_toBottomOf="@+id/idNumber" />
-
 
     <Spinner
         android:id="@+id/sortSpinner"
-        android:layout_width="120dp"
-        android:layout_height="45dp"
-        android:layout_marginTop="32dp"
-        android:layout_marginRight="30dp"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintWidth_percent="0.27"
+        app:layout_constraintHeight_percent="0.046"
+        android:layout_marginTop="30dp"
         android:entries="@array/sort_options"
         android:hint="SORT BY"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintEnd_toEndOf="@id/guideline2"
         app:layout_constraintStart_toEndOf="@id/searchView"
         app:layout_constraintTop_toBottomOf="@id/idNumber" />
 
     <ListView
         android:id="@+id/list_view_schedule"
-        android:layout_width="347dp"
-        android:layout_height="355dp"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
         android:divider="@android:color/transparent"
         android:dividerHeight="10sp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="@id/guideline2"
+        app:layout_constraintHeight_percent="0.41"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="@id/guideline1"
         app:layout_constraintTop_toBottomOf="@id/searchView"
-        app:layout_constraintVertical_bias="0.266"
+        app:layout_constraintVertical_bias="0.179"
+        app:layout_constraintWidth_percent="0.8"
         tools:listitem="@layout/list_class_schedule" />
 
 
 
     <Button
         android:id="@+id/prevButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintWidth_percent="0.26"
+        app:layout_constraintHeight_percent="0.055"
         android:text="Previous"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toBottomOf="@id/guideline3"
         app:layout_constraintEnd_toStartOf="@id/nextButton"
+        android:backgroundTint="@color/gray"
         android:textColor="@color/maroon"
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
@@ -108,15 +114,38 @@
 
     <Button
         android:id="@+id/nextButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintWidth_percent="0.26"
+        app:layout_constraintHeight_percent="0.055"
         android:text="Next"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toBottomOf="@id/guideline3"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@id/prevButton"
         android:backgroundTint="@color/maroon"
         android:textColor="@color/gold"
         android:enabled="false"/>
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideline1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.1" />
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideline2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.9" />
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideline3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_percent="0.97" />
 
 
 

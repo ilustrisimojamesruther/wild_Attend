@@ -53,15 +53,21 @@
 
 
     <!-- First FrameLayout (top-left) -->
+
+
+    <!-- Second FrameLayout (top-right) -->
+
     <FrameLayout
         android:id="@+id/frame1"
-        android:layout_width="190dp"
-        android:layout_height="80dp"
+        android:layout_width="0dp"
+        android:layout_height="85dp"
         android:layout_marginTop="16dp"
-        android:layout_marginStart="16dp"
         android:background="@drawable/border_background_v2"
+        app:layout_constraintEnd_toStartOf="@id/guideline2"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="@id/guideline1"
         app:layout_constraintTop_toBottomOf="@id/topFrameLayout"
-        app:layout_constraintStart_toStartOf="parent">
+        app:layout_constraintWidth_percent="0.46">
 
         <ImageView
             android:id="@+id/icon_on_time"
@@ -72,18 +78,19 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
+
         <TextView
             android:id="@+id/onTimeText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:padding="10dp"
             android:layout_gravity="end"
+            android:layout_marginRight="20dp"
+            android:autoSizeTextType="uniform"
+            android:padding="10dp"
             android:text="On Time"
             android:textColor="@color/black"
             android:textSize="16sp"
             android:textStyle="bold"
-            android:layout_marginTop="5dp"
-            android:layout_marginRight="20dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
@@ -91,30 +98,30 @@
             android:id="@+id/onTimeValue"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:padding="10dp"
+            android:layout_gravity="end"
             android:layout_marginTop="25dp"
             android:layout_marginRight="35dp"
-            android:layout_gravity="end"
-            android:text="-"
+            android:autoSizeTextType="uniform"
+            android:padding="8dp"
+            android:text="6"
             android:textColor="@color/black"
             android:textSize="24sp"
             android:textStyle="bold"
-            app:layout_constraintTop_toBottomOf="@id/timeInText"
+            app:layout_constraintBottom_toBottomOf="@id/timeInText"
             app:layout_constraintStart_toStartOf="parent" />
 
     </FrameLayout>
 
-
-    <!-- Second FrameLayout (top-right) -->
     <FrameLayout
         android:id="@+id/frame2"
-        android:layout_width="190dp"
-        android:layout_height="80dp"
+        android:layout_width="0dp"
+        android:layout_height="85dp"
         android:layout_marginTop="16dp"
-        android:layout_marginEnd="16dp"
         android:background="@drawable/border_background_v2"
-        app:layout_constraintTop_toBottomOf="@id/topFrameLayout"
-        app:layout_constraintEnd_toEndOf="parent">
+        app:layout_constraintWidth_percent="0.46"
+        app:layout_constraintStart_toStartOf="@id/guideline2"
+        app:layout_constraintEnd_toStartOf="@id/guideline3"
+        app:layout_constraintTop_toBottomOf="@id/topFrameLayout">
 
         <ImageView
             android:id="@+id/icon_late"
@@ -129,14 +136,15 @@
             android:id="@+id/lateText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:padding="10dp"
             android:layout_gravity="end"
+            android:layout_marginTop="5dp"
+            android:layout_marginRight="30dp"
+            android:padding="10dp"
             android:text="Lates"
+            android:autoSizeTextType="uniform"
             android:textColor="@color/black"
             android:textSize="16sp"
             android:textStyle="bold"
-            android:layout_marginTop="5dp"
-            android:layout_marginRight="30dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
@@ -144,33 +152,32 @@
             android:id="@+id/lateValue"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:padding="10dp"
+            android:layout_gravity="end"
             android:layout_marginTop="25dp"
             android:layout_marginRight="35dp"
-            android:layout_gravity="end"
-            android:text="-"
+            android:padding="8dp"
+            android:text="6"
             android:textColor="@color/black"
             android:textSize="24sp"
+            android:autoSizeTextType="uniform"
             android:textStyle="bold"
-            app:layout_constraintTop_toBottomOf="@id/timeInText"
-            app:layout_constraintStart_toStartOf="parent" />
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/timeInText" />
 
     </FrameLayout>
 
     <FrameLayout
         android:id="@+id/bigFrame"
-        android:layout_width="380dp"
+        android:layout_width="0dp"
         android:layout_height="120dp"
-        android:layout_marginStart="16dp"
+        app:layout_constraintWidth_percent="0.92"
         android:background="@drawable/border_background_v2"
         app:layout_constraintTop_toBottomOf="@id/frame1"
-        app:layout_constraintStart_toStartOf="parent">
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
 
 
         <androidx.constraintlayout.widget.ConstraintLayout
-            xmlns:android="http://schemas.android.com/apk/res/android"
-            xmlns:app="http://schemas.android.com/apk/res-auto"
-            xmlns:tools="http://schemas.android.com/tools"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             tools:context=".YourActivity">
@@ -179,11 +186,11 @@
             <FrameLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintHorizontal_bias="0.5"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintVertical_bias="0.6">
 
                 <!-- Attendance Icon -->
@@ -191,32 +198,35 @@
                     android:id="@+id/studentProgressBar"
                     android:layout_width="100dp"
                     android:layout_height="100dp"
-                    android:layout_gravity="center"/>
+                    android:layout_gravity="center" />
 
                 <!-- Percentage TextView -->
                 <TextView
                     android:id="@+id/percentageText"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="0%"
-                    android:textStyle="bold"
-                    android:textSize="15sp"
-                    android:textColor="@color/black"
                     android:layout_gravity="center"
-                    android:layout_marginTop="-10dp"/>
+                    android:layout_marginTop="-10dp"
+                    android:text="0%"
+                    android:autoSizeTextType="uniform"
+                    android:textColor="@color/black"
+                    android:textSize="15sp"
+                    android:textStyle="bold" />
 
                 <!-- Attendance TextView -->
                 <TextView
                     android:id="@+id/attendanceText"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Attendance"
-                    android:textStyle="bold"
-                    android:textSize="15sp"
-                    android:textColor="@color/black"
                     android:layout_gravity="center"
-                    android:layout_marginTop="10dp"/>
+                    android:layout_marginTop="10dp"
+                    android:text="Attendance"
+                    android:autoSizeTextType="uniform"
+                    android:textColor="@color/black"
+                    android:textSize="15sp"
+                    android:textStyle="bold" />
             </FrameLayout>
+
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -241,14 +251,19 @@
     </FrameLayout>
 
     <!-- Third FrameLayout (bottom-left) -->
+
+
+    <!-- Fourth FrameLayout (bottom-right) -->
     <FrameLayout
         android:id="@+id/frame3"
-        android:layout_width="190dp"
-        android:layout_height="80dp"
-        android:layout_marginStart="16dp"
+        android:layout_width="0dp"
+        android:layout_height="85dp"
         android:background="@drawable/border_background_v2"
+        app:layout_constraintEnd_toStartOf="@id/guideline2"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="@id/guideline1"
         app:layout_constraintTop_toBottomOf="@id/bigFrame"
-        app:layout_constraintStart_toStartOf="parent">
+        app:layout_constraintWidth_percent="0.46">
 
         <ImageView
             android:id="@+id/icon_classes"
@@ -263,14 +278,15 @@
             android:id="@+id/classesText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:padding="10dp"
             android:layout_gravity="end"
+            android:layout_marginTop="5dp"
+            android:layout_marginRight="20dp"
+            android:autoSizeTextType="uniform"
+            android:padding="10dp"
             android:text="Classes"
             android:textColor="@color/black"
             android:textSize="16sp"
             android:textStyle="bold"
-            android:layout_marginTop="5dp"
-            android:layout_marginRight="20dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
@@ -278,29 +294,30 @@
             android:id="@+id/classesValue"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:padding="10dp"
+            android:layout_gravity="end"
             android:layout_marginTop="25dp"
             android:layout_marginRight="35dp"
-            android:layout_gravity="end"
-            android:text="-"
+            android:autoSizeTextType="uniform"
+            android:padding="8dp"
+            android:text="6"
             android:textColor="@color/black"
             android:textSize="24sp"
             android:textStyle="bold"
-            app:layout_constraintTop_toBottomOf="@id/timeInText"
-            app:layout_constraintStart_toStartOf="parent" />
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/timeInText" />
 
     </FrameLayout>
 
-
-    <!-- Fourth FrameLayout (bottom-right) -->
     <FrameLayout
         android:id="@+id/frame4"
-        android:layout_width="190dp"
-        android:layout_height="80dp"
-        android:layout_marginEnd="16dp"
+        android:layout_width="0dp"
+        android:layout_height="85dp"
         android:background="@drawable/border_background_v2"
+        app:layout_constraintWidth_percent="0.46"
+        app:layout_constraintStart_toStartOf="@id/guideline2"
+        app:layout_constraintEnd_toStartOf="@id/guideline3"
         app:layout_constraintTop_toBottomOf="@id/bigFrame"
-        app:layout_constraintEnd_toEndOf="parent">
+        >
 
         <ImageView
             android:id="@+id/icon_total_hours"
@@ -321,6 +338,7 @@
             android:text="Total Hours"
             android:textColor="@color/black"
             android:textSize="16sp"
+            android:autoSizeTextType="uniform"
             android:textStyle="bold"
             android:layout_marginTop="5dp"
             android:layout_marginRight="10dp"
@@ -331,13 +349,14 @@
             android:id="@+id/totalHoursValue"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:padding="10dp"
+            android:padding="8dp"
             android:layout_marginTop="25dp"
             android:layout_marginRight="40dp"
             android:layout_gravity="end"
-            android:text="-"
+            android:text="6"
             android:textColor="@color/black"
             android:textSize="24sp"
+            android:autoSizeTextType="uniform"
             android:textStyle="bold"
             app:layout_constraintTop_toBottomOf="@id/timeInText"
             app:layout_constraintStart_toStartOf="parent" />
@@ -349,11 +368,9 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
-        android:layout_marginStart="16dp"
-        android:layout_marginEnd="16dp"
         android:layout_marginBottom="24dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="@id/guideline3"
+        app:layout_constraintStart_toStartOf="@id/guideline1"
         app:layout_constraintTop_toBottomOf="@+id/frame4">
 
         <RelativeLayout
@@ -369,6 +386,7 @@
                 android:layout_centerHorizontal="true"
                 android:text="Next Class"
                 android:textSize="18sp"
+                android:autoSizeTextType="uniform"
                 android:textStyle="bold"
                 android:textColor="@android:color/black"
                 android:layout_marginTop="10dp"
@@ -388,6 +406,27 @@
         </RelativeLayout>
 
     </androidx.cardview.widget.CardView>
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideline1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.04" />
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideline2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.5" />
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideline3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.96" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>
