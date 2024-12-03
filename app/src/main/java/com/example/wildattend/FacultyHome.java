@@ -19,6 +19,7 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
 import com.google.android.material.textview.MaterialTextView;
+import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -52,6 +53,8 @@ public class FacultyHome extends Fragment {
     private FacultyProgressBar facultyProgressBar;
 
     private TextView percentageText;
+    private TextView timeInValue;
+    private TextView timeOutValue;
 
     public FacultyHome() {
         // Required empty public constructor
@@ -71,6 +74,8 @@ public class FacultyHome extends Fragment {
         attendanceLogListView = rootView.findViewById(R.id.attendanceLogListView);
         facultyProgressBar = rootView.findViewById(R.id.facultyProgressBar);
         percentageText = rootView.findViewById(R.id.percentageText);
+        timeInValue = rootView.findViewById(R.id.timeInValue);
+        timeOutValue = rootView.findViewById(R.id.timeOutValue);
 
 
         // Fetch and display the attendance progress
@@ -87,6 +92,15 @@ public class FacultyHome extends Fragment {
 
         // Fetch and display user information
         fetchUserInformation();
+
+        // Fetch and display the last time-in and time-out
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser != null) {
+            fetchLastTimeInAndOut(currentUser.getUid());
+        } else {
+            Log.e(TAG, "User is not authenticated");
+        }
+
 
         // Setup the attendance log ListView
         setupListView(inflater);
@@ -258,6 +272,53 @@ public class FacultyHome extends Fragment {
     }
 
 
+    private void fetchLastTimeInAndOut(String userId) {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        db.collection("attendRecord")
+                .whereEqualTo("userId", userId) // Filter by userId
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    DocumentSnapshot latestDocument = null;
+                    Timestamp latestTimeIn = null;
+
+                    for (DocumentSnapshot document : queryDocumentSnapshots) {
+                        Timestamp timeIn = document.getTimestamp("timeIn");
+                        if (timeIn != null && (latestTimeIn == null || timeIn.toDate().after(latestTimeIn.toDate()))) {
+                            latestTimeIn = timeIn;
+                            latestDocument = document;
+                        }
+                    }
+
+                    if (latestDocument != null) {
+                        // Extract timeIn and timeOut from the latest document
+                        Timestamp timeIn = latestDocument.getTimestamp("timeIn");
+                        Timestamp timeOut = latestDocument.getTimestamp("timeOut");
+
+                        // Update the UI
+                        timeInValue.setText(timeIn != null ? formatTimestamp(timeIn) : "No Time In");
+                        timeOutValue.setText(timeOut != null ? formatTimestamp(timeOut) : "No Time Out");
+                    } else {
+                        // Handle no records found
+                        timeInValue.setText("No Time In");
+                        timeOutValue.setText("No Time Out");
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    // Handle errors
+                    Log.e(TAG, "Error fetching attendance records: " + e.getMessage(), e);
+                    timeInValue.setText("Error");
+                    timeOutValue.setText("Error");
+                });
+    }
+
+
+    private String formatTimestamp(Timestamp timestamp) {
+        if (timestamp == null) {
+            return "N/A"; // Return a fallback value if the timestamp is null
+        }
+        SimpleDateFormat dateFormat = new SimpleDateFormat("h:mm a, MMM d, yyyy", Locale.getDefault());
+        return dateFormat.format(timestamp.toDate()); // Convert Timestamp to Date and format it
+    }
 
 
 
