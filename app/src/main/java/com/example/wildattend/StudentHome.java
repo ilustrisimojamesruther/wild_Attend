@@ -17,6 +17,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -92,6 +93,9 @@ public class StudentHome extends Fragment {
         fetchUserInformation();
 
         setupListView();
+        fetchOnTimeCount();
+        fetchLateCount();
+        fetchTotalHours();
         fetchUserClasses();
         return rootView;
     }
@@ -194,6 +198,116 @@ public class StudentHome extends Fragment {
             Log.e(TAG, "User is not authenticated");
         }
     }
+
+    private void fetchOnTimeCount() {
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser != null) {
+            String userId = currentUser.getUid();
+            FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+            db.collection("attendRecord")
+                    .whereEqualTo("userId", userId)
+                    .whereEqualTo("status", "On-Time")
+                    .get()
+                    .addOnSuccessListener(queryDocumentSnapshots -> {
+                        int onTimeCount = queryDocumentSnapshots.size(); // Count of "On-Time" records
+
+                        // Update UI with the "On-Time" count
+                        TextView onTimeValue = getView().findViewById(R.id.onTimeValue);
+                        onTimeValue.setText(String.valueOf(onTimeCount));
+
+                        Log.d(TAG, "On-Time records count: " + onTimeCount);
+                    })
+                    .addOnFailureListener(e -> {
+                        Log.e(TAG, "Error fetching On-Time records", e);
+                        Toast.makeText(requireContext(), "Failed to fetch On-Time data", Toast.LENGTH_SHORT).show();
+                    });
+        } else {
+            Log.e(TAG, "User is not authenticated");
+            // Handle unauthenticated user case
+        }
+    }
+
+    private void fetchLateCount() {
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser != null) {
+            String userId = currentUser.getUid();
+            FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+            db.collection("attendRecord")
+                    .whereEqualTo("userId", userId)
+                    .whereEqualTo("status", "Late")
+                    .get()
+                    .addOnSuccessListener(queryDocumentSnapshots -> {
+                        int lateCount = queryDocumentSnapshots.size(); // Count of "Late" records
+
+                        // Update UI with the "Late" count
+                        TextView lateValue = getView().findViewById(R.id.lateValue);
+                        lateValue.setText(String.valueOf(lateCount));
+
+                        Log.d(TAG, "Late records count: " + lateCount);
+                    })
+                    .addOnFailureListener(e -> {
+                        Log.e(TAG, "Error fetching Late records", e);
+                        Toast.makeText(requireContext(), "Failed to fetch Late data", Toast.LENGTH_SHORT).show();
+                    });
+        } else {
+            Log.e(TAG, "User is not authenticated");
+            // Handle unauthenticated user case
+        }
+    }
+
+
+    private void fetchTotalHours() {
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser != null) {
+            String userId = currentUser.getUid();
+            FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+            db.collection("attendRecord")
+                    .whereEqualTo("userId", userId)
+                    .get()
+                    .addOnSuccessListener(queryDocumentSnapshots -> {
+                        long totalMilliseconds = 0; // Total time in milliseconds
+
+                        // Loop through each attendance record
+                        for (DocumentSnapshot documentSnapshot : queryDocumentSnapshots.getDocuments()) {
+                            // Extract timeIn and timeOut timestamps
+                            Timestamp timeInTimestamp = documentSnapshot.getTimestamp("timeIn");
+                            Timestamp timeOutTimestamp = documentSnapshot.getTimestamp("timeOut");
+
+                            // Ensure neither timeIn nor timeOut is null
+                            if (timeInTimestamp != null && timeOutTimestamp != null) {
+                                Date timeIn = timeInTimestamp.toDate();
+                                Date timeOut = timeOutTimestamp.toDate();
+
+                                // Add the difference to totalMilliseconds
+                                totalMilliseconds += timeOut.getTime() - timeIn.getTime();
+                            } else {
+                                Log.w(TAG, "Skipping record with missing timeIn or timeOut: " + documentSnapshot.getId());
+                            }
+                        }
+
+                        // Convert total milliseconds to decimal hours
+                        double totalHours = totalMilliseconds / (1000.0 * 60 * 60);
+
+                        // Update the UI with a single decimal value
+                        TextView totalHoursValue = getView().findViewById(R.id.totalHoursValue);
+                        totalHoursValue.setText(String.format(Locale.getDefault(), "%.1f", totalHours));
+
+                        Log.d(TAG, "Total hours: " + totalHours);
+                    })
+                    .addOnFailureListener(e -> {
+                        Log.e(TAG, "Error fetching total hours", e);
+                        Toast.makeText(requireContext(), "Failed to fetch total hours", Toast.LENGTH_SHORT).show();
+                    });
+        } else {
+            Log.e(TAG, "User is not authenticated");
+            // Handle unauthenticated user case
+        }
+    }
+
+
 
     private void fetchClassDetails(String classID) {
         FirebaseFirestore db = FirebaseFirestore.getInstance();

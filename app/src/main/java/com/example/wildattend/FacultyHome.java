@@ -247,10 +247,10 @@ public class FacultyHome extends Fragment {
                             int totalClasses = queryDocumentSnapshots.size();
                             int attendedClasses = 0;
 
-                            // Calculate attended classes
+                            // Calculate attended classes (similar to student logic)
                             for (DocumentSnapshot documentSnapshot : queryDocumentSnapshots.getDocuments()) {
                                 String status = documentSnapshot.getString("status");
-                                if ("Timed Out".equals(status)) {
+                                if ("On-Time".equals(status)) { // Use "On-Time" or adjust based on your data
                                     attendedClasses++;
                                 }
                             }
