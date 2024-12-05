@@ -36,7 +36,9 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 
 public class FacultyHome extends Fragment {
@@ -45,11 +47,13 @@ public class FacultyHome extends Fragment {
     private TextView upcomingCourseTextView;
     private MaterialTextView courseView;
 
-    private ListView attendanceLogListView;
+    private ListView listView;
     private static final String TAG = "FacultyHome";
     private TextView facultyNameTextView;
     private ImageView profile_image;
 
+    private List<ClassItem> scheduleItems;
+    private ClassItemAdapter adapter;
     private FacultyProgressBar facultyProgressBar;
 
     private TextView percentageText;
@@ -71,7 +75,7 @@ public class FacultyHome extends Fragment {
         courseView = rootView.findViewById(R.id.courseView);
         facultyNameTextView = rootView.findViewById(R.id.home_header);
         profile_image = rootView.findViewById(R.id.profile_image_faculty);
-        attendanceLogListView = rootView.findViewById(R.id.attendanceLogListView);
+        listView = rootView.findViewById(R.id.list_view_schedule);
         facultyProgressBar = rootView.findViewById(R.id.facultyProgressBar);
         percentageText = rootView.findViewById(R.id.percentageText);
         timeInValue = rootView.findViewById(R.id.timeInValue);
@@ -80,6 +84,10 @@ public class FacultyHome extends Fragment {
 
         // Fetch and display the attendance progress
         fetchAttendanceProgress();
+
+        scheduleItems = new ArrayList<>();
+        adapter = new ClassItemAdapter(requireContext(), scheduleItems, R.layout.list_next_class, false);
+        listView.setAdapter(adapter);
 
 //        int progress = 80; // Example progress value
 //        facultyProgressBar.setProgress(progress);
@@ -103,8 +111,8 @@ public class FacultyHome extends Fragment {
 
 
         // Setup the attendance log ListView
-        setupListView(inflater);
-
+        setupListView();
+        fetchUserClasses();
         return rootView;
     }
 
@@ -130,7 +138,7 @@ public class FacultyHome extends Fragment {
                             new LoadImageTask(profile_image).execute(imageUrl);
 
                             // Fetch classes
-                            fetchUserClasses(currentUser.getUid());
+//                            fetchUserClasses(currentUser.getUid());
                         }
                     })
                     .addOnFailureListener(e -> {
@@ -142,20 +150,42 @@ public class FacultyHome extends Fragment {
     }
 
 
-    private void fetchUserClasses(String userId) {
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
-        db.collection("userClasses")
-                .whereEqualTo("userID", userId)
-                .get()
-                .addOnSuccessListener(queryDocumentSnapshots -> {
-                    for (QueryDocumentSnapshot documentSnapshot : queryDocumentSnapshots) {
-                        String classID = documentSnapshot.getString("classID");
-                        fetchClassDetails(classID);
-                    }
-                })
-                .addOnFailureListener(e -> {
-                    Log.e(TAG, "Error fetching user classes", e);
-                });
+//    private void fetchUserClasses(String userId) {
+//        FirebaseFirestore db = FirebaseFirestore.getInstance();
+//        db.collection("userClasses")
+//                .whereEqualTo("userID", userId)
+//                .get()
+//                .addOnSuccessListener(queryDocumentSnapshots -> {
+//                    for (QueryDocumentSnapshot documentSnapshot : queryDocumentSnapshots) {
+//                        String classID = documentSnapshot.getString("classID");
+//                        fetchClassDetails(classID);
+//                    }
+//                })
+//                .addOnFailureListener(e -> {
+//                    Log.e(TAG, "Error fetching user classes", e);
+//                });
+//    }
+
+    private void fetchUserClasses() {
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser != null) {
+            String userId = currentUser.getUid();
+            FirebaseFirestore db = FirebaseFirestore.getInstance();
+            db.collection("userClasses")
+                    .whereEqualTo("userID", userId)
+                    .get()
+                    .addOnSuccessListener(queryDocumentSnapshots -> {
+                        for (QueryDocumentSnapshot documentSnapshot : queryDocumentSnapshots) {
+                            String classID = documentSnapshot.getString("classID");
+                            fetchClassDetails(classID);
+                        }
+                    })
+                    .addOnFailureListener(e -> {
+                        Log.e(TAG, "Error fetching user classes", e);
+                    });
+        } else {
+            Log.e(TAG, "User is not authenticated");
+        }
     }
 
     private void fetchClassDetails(String classID) {
@@ -171,11 +201,41 @@ public class FacultyHome extends Fragment {
                         String formattedStartTime = formatTime(startTime); // Format the start time
                         String endTime = documentSnapshot.getString("endTime");
                         String formattedEndTime = formatTime(endTime); // Format the end time
+                        String classColor = documentSnapshot.getString("classColor");
+                        String classRoom = documentSnapshot.getString("classRoom");
+
+                        // Fetch day booleans with null checks using temporary variables
+                        Boolean mondayObj = documentSnapshot.getBoolean("Monday");
+                        boolean monday = mondayObj != null && mondayObj;
+
+                        Boolean tuesdayObj = documentSnapshot.getBoolean("Tuesday");
+                        boolean tuesday = tuesdayObj != null && tuesdayObj;
+
+                        Boolean wednesdayObj = documentSnapshot.getBoolean("Wednesday");
+                        boolean wednesday = wednesdayObj != null && wednesdayObj;
+
+                        Boolean thursdayObj = documentSnapshot.getBoolean("Thursday");
+                        boolean thursday = thursdayObj != null && thursdayObj;
+
+                        Boolean fridayObj = documentSnapshot.getBoolean("Friday");
+                        boolean friday = fridayObj != null && fridayObj;
+
+                        Boolean saturdayObj = documentSnapshot.getBoolean("Saturday");
+                        boolean saturday = saturdayObj != null && saturdayObj;
+
+                        Boolean sundayObj = documentSnapshot.getBoolean("Sunday");
+                        boolean sunday = sundayObj != null && sundayObj;
+
+                        Log.d(TAG, "Class Name: " + classDesc);
 
                         // Update UI with class details
                         upcomingTimeTextView.setText(formattedStartTime + " - " + formattedEndTime);
                         upcomingCourseTextView.setText(classCode);
                         courseView.setText(classCode.substring(0, 3)); // Assuming courseView displays a short code
+
+                        ClassItem item = new ClassItem(classCode, classDesc, formattedStartTime, formattedEndTime, classColor, classRoom, monday, tuesday, wednesday, thursday, friday, saturday, sunday);
+                        scheduleItems.add(item);
+                        adapter.notifyDataSetChanged();
                     } else {
                         Log.e(TAG, "Class document does not exist");
                     }
@@ -198,24 +258,25 @@ public class FacultyHome extends Fragment {
     }
 
 
-    private void setupListView(LayoutInflater inflater) {
-        // Sample data for the ListView
-        String[] attendanceLogs = {
-                "Time In",
-                "Start Class",
-                "End Class",
-                "Rest Break"
-        };
+    private void setupListView() {
+        listView.setOnItemClickListener((parent, view, position, id) -> {
+            ClassItem selectedItem = (ClassItem) parent.getItemAtPosition(position);
+            if (selectedItem != null) {
+                // Navigate to the detailed schedule of the selected class
+                navigateToClassSchedule(selectedItem.getClassCode(),selectedItem.getStartTime(), selectedItem.getEndTime(),  selectedItem.getClassDesc(), selectedItem.getClassRoom(), selectedItem.getClassColor());
+            }
+        });
+    }
 
-        // Create an ArrayAdapter to display the attendance log items
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(requireContext(), R.layout.list_attendance_log, R.id.actionText, attendanceLogs);
+    private void navigateToClassSchedule(String classCode, String startTime, String endTime, String classDesc, String classRoom, String classColor) {
+        // Create instance of StudentScheduleClass fragment and pass class code as argument
+        FacultyScheduleTimeIn facultyScheduleClassFragment = FacultyScheduleTimeIn.newInstance(classCode, startTime, endTime, classDesc, classRoom, classColor);
 
-        // Inflate the header layout and add it to the ListView
-        View headerView = inflater.inflate(R.layout.header_list_attendance_log, null);
-        attendanceLogListView.addHeaderView(headerView);
-
-        // Set the adapter to the ListView
-        attendanceLogListView.setAdapter(adapter);
+        // Navigate to the StudentScheduleClass fragment
+        getParentFragmentManager().beginTransaction()
+                .replace(R.id.faculty_frame_layout, facultyScheduleClassFragment)
+                .addToBackStack(null)
+                .commit();
     }
 
     private void fetchAttendanceProgress() {
