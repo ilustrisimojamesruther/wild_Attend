@@ -345,8 +345,8 @@ public class FacultyScheduleTimeIn extends Fragment {
                                     Toast.makeText(getContext(), "Class is not scheduled for today.", Toast.LENGTH_SHORT).show();
                                 }
                             } else {
-                                Log.e(TAG, "Class document not found");
-                                Toast.makeText(getContext(), "Class document not found", Toast.LENGTH_SHORT).show();
+                                Log.e(TAG, "User is not connected to the required Wi-Fi network.");
+                                Toast.makeText(getContext(), "Please connect to the specified Wi-Fi network to time in.", Toast.LENGTH_SHORT).show();
                             }
                         } else {
                             Log.e(TAG, "Class document not found");
