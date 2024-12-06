@@ -216,10 +216,10 @@ public class StudentOverAllAttendance extends Fragment {
         // Add data rows
         for (int i = start; i < end; i++) {
             DocumentSnapshot documentSnapshot = allRecords.get(i);
-            String className = documentSnapshot.getString("className"); // Assuming field name is className
-            String status = documentSnapshot.getString("status");
+            String className = documentSnapshot.getString("className") != null ? documentSnapshot.getString("className") : "";
+            String status = documentSnapshot.getString("status") != null ? documentSnapshot.getString("status") : "";
             Timestamp timeInTimestamp = documentSnapshot.getTimestamp("timeIn");
-            String timeIn = formatTimestamp(timeInTimestamp);
+            String timeIn = timeInTimestamp != null ? formatTimestamp(timeInTimestamp) : "";
 
             TableRow row = new TableRow(requireContext());
             row.addView(createTextView(className));
@@ -236,6 +236,19 @@ public class StudentOverAllAttendance extends Fragment {
     }
 
     private void addHeaderRow() {
+        // Check if the header row already exists
+        if (tableLayout.getChildCount() > 0) {
+            View firstRow = tableLayout.getChildAt(0);
+            if (firstRow instanceof TableRow) {
+                TableRow existingHeader = (TableRow) firstRow;
+                if (existingHeader.getChildCount() > 0 &&
+                        ((TextView) existingHeader.getChildAt(0)).getText().equals("Course")) {
+                    // Header already exists, do not add it again
+                    return;
+                }
+            }
+        }
+
         TableRow headerRow = new TableRow(requireContext());
 
         headerRow.addView(createTextView("Course"));
@@ -245,6 +258,7 @@ public class StudentOverAllAttendance extends Fragment {
 
         tableLayout.addView(headerRow, 0); // Add header row at index 0
     }
+
 
     private void setupSearchView() {
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
@@ -268,21 +282,61 @@ public class StudentOverAllAttendance extends Fragment {
             String className = document.getString("className");
             String status = document.getString("status");
             Timestamp timeInTimestamp = document.getTimestamp("timeIn");
-            String day = getDayFromTimestamp(timeInTimestamp);
-            String date = formatTimestamp(timeInTimestamp);
 
-            if (className.toLowerCase().contains(query.toLowerCase())
-                    || status.toLowerCase().contains(query.toLowerCase())
+            // Null-safe handling
+            String day = timeInTimestamp != null ? getDayFromTimestamp(timeInTimestamp) : "";
+            String date = timeInTimestamp != null ? formatTimestamp(timeInTimestamp) : "";
+
+            if ((className != null && className.toLowerCase().contains(query.toLowerCase()))
+                    || (status != null && status.toLowerCase().contains(query.toLowerCase()))
                     || day.toLowerCase().contains(query.toLowerCase())
                     || date.toLowerCase().contains(query.toLowerCase())) {
                 displayedRecords.add(document);
             }
         }
 
-        currentPage = 0;
+        currentPage = 0; // Reset pagination
         totalPages = (int) Math.ceil((double) displayedRecords.size() / pageSize);
-        updateTable();
+        updateFilteredTable(); // Use a new method to update the table
     }
+
+    private void updateFilteredTable() {
+        if (tableLayout == null) {
+            Log.e(TAG, "TableLayout is not initialized.");
+            return;
+        }
+
+        // Remove all rows except the header
+        int childCount = tableLayout.getChildCount();
+        if (childCount > 1) {
+            tableLayout.removeViews(1, childCount - 1);
+        }
+
+        // Add data rows from displayedRecords
+        int start = currentPage * pageSize;
+        int end = Math.min(start + pageSize, displayedRecords.size());
+
+        for (int i = start; i < end; i++) {
+            DocumentSnapshot documentSnapshot = displayedRecords.get(i);
+            String className = documentSnapshot.getString("className") != null ? documentSnapshot.getString("className") : "";
+            String status = documentSnapshot.getString("status") != null ? documentSnapshot.getString("status") : "";
+            Timestamp timeInTimestamp = documentSnapshot.getTimestamp("timeIn");
+            String timeIn = timeInTimestamp != null ? formatTimestamp(timeInTimestamp) : "";
+
+            TableRow row = new TableRow(requireContext());
+            row.addView(createTextView(className));
+            row.addView(createTextView(getDayFromTimestamp(timeInTimestamp)));
+            row.addView(createTextView(timeIn));
+            row.addView(createTextView(status));
+
+            tableLayout.addView(row);
+        }
+
+        // Update button states
+        prevPageButton.setEnabled(currentPage > 0);
+        nextPageButton.setEnabled(currentPage < totalPages - 1);
+    }
+
 
     private TextView createTextView(String text) {
         TextView textView = new TextView(requireContext());
